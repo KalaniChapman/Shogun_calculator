@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Samurai Swords Battle Simulator</title>
+    <style>
+        .army-setup {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px;
+            border: 2px solid;
+        }
+        .army-grid {
+            display: grid;
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .army-row {
+            display: flex;
+            gap: 10px;
+            min-height: 100px;
+            border: 1px dashed gray;
+        }
+        .unit {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin: 5px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .unit.selected-casualty {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+        .red-army .unit {
+            background-color: rgba(255, 0, 0, 0.3);
+            border: 1px solid red;
+        }
+        .blue-army .unit {
+            background-color: rgba(0, 0, 255, 0.3);
+            border: 1px solid blue;
+        }
+        #battleLog {
+            margin: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            height: 200px;
+            overflow-y: scroll;
+        }
+        .combat-controls {
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="battle-container">
+        <div id="redArmySetup" class="army-setup red-army">
+            <h2>Red Army</h2>
+            <div id="redArmyGrid" class="army-grid">
+                <div class="army-row" row="0"></div>
+                <div class="army-row" row="1"></div>
+                <div class="army-row" row="2"></div>
+            </div>
+            <div id="redUnitTypes" class="unit-types">
+                <button onclick="addUnit('red', 'Samurai')">Samurai</button>
+                <button onclick="addUnit('red', 'Archers')">Archers</button>
+                <button onclick="addUnit('red', 'Gunners')">Gunners</button>
+                <button onclick="addUnit('red', 'Ashigaru')">Ashigaru</button>
+                <button onclick="resetArmy('red')">Reset Army</button>
+            </div>
+        </div>
+
+        <div id="blueArmySetup" class="army-setup blue-army">
+            <h2>Blue Army</h2>
+            <div id="blueArmyGrid" class="army-grid">
+                <div class="army-row" row="0"></div>
+                <div class="army-row" row="1"></div>
+                <div class="army-row" row="2"></div>
+            </div>
+            <div id="blueUnitTypes" class="unit-types">
+                <button onclick="addUnit('blue', 'Samurai')">Samurai</button>
+                <button onclick="addUnit('blue', 'Archers')">Archers</button>
+                <button onclick="addUnit('blue', 'Gunners')">Gunners</button>
+                <button onclick="addUnit('blue', 'Ashigaru')">Ashigaru</button>
+                <button onclick="resetArmy('blue')">Reset Army</button>
+            </div>
+        </div>
+
+        <div class="battle-controls">
+            <button onclick="startBattle()">Start Battle</button>
+        </div>
+
+        <div class="combat-controls">
+            <div id="battleLog">Battle Log</div>
+            <div id="casualtyRemoval">
+                <h3 id="casualtyInstructions"></h3>
+                <button id="removeCasualtiesBtn" onclick="removeCasualties()" style="display:none;">Remove Casualties</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const UNIT_HIT_RULES = {
+            'Daimyo': { hits: 6, dice: 12 },     // hits on 1-6 out of 12
+            'Archers': { hits: 6, dice: 12 },    // hits on 1-6 out of 12
+            'Samurai': { hits: 5, dice: 12 },    // hits on 1-5 out of 12
+            'Gunners': { hits: 4, dice: 12 },    // hits on 1-4 out of 12
+            'Ashigaru': { hits: 4, dice: 12 }    // hits on 1-4 out of 12
+        };
+
+        let currentBattleState = null;
+
+        // Initialize armies with Daimyo
+        function initializeArmy(armyColor) {
+            const grid = document.getElementById(`${armyColor}ArmyGrid`);
+            const firstRow = grid.querySelector('.army-row[row="0"]');
+            
+            // Create Daimyo unit
+            const daimyo = document.createElement('div');
+            daimyo.className = 'unit';
+            daimyo.textContent = 'D';
+            daimyo.dataset.type = 'Daimyo';
+            daimyo.onclick = () => removeUnit(daimyo);
+            firstRow.appendChild(daimyo);
+        }
+
+        // Call initialization for both armies
+        initializeArmy('red');
+        initializeArmy('blue');
+
+        function findAvailableRow(armyColor, unitType) {
+            const grid = document.getElementById(`${armyColor}ArmyGrid`);
+            const rows = grid.querySelectorAll('.army-row');
+            const priority = ['Daimyo', 'Archers', 'Samurai', 'Gunners', 'Ashigaru'];
+
+            // Handle first row (prioritized units)
+            if (priority.includes(unitType)) {
+                const firstRow = rows[0];
+                if (firstRow.children.length < 5) {
+                    return firstRow;
+                }
+            }
+
+            // Find first row with space
+            for (let row of rows) {
+                if (row.children.length < 5) {
+                    return row;
+                }
+            }
+
+            return null;
+        }
+
+        function sortRowUnits(row) {
+            const priority = ['Daimyo', 'Archers', 'Samurai', 'Gunners', 'Ashigaru'];
+            const units = Array.from(row.children);
+            
+            // Sort units based on priority
+            const sortedUnits = priority
+                .map(type => units.find(u => u.dataset.type === type))
+                .filter(u => u);
+
+            // Clear and re-add sorted units
+            row.innerHTML = '';
+            sortedUnits.forEach(unit => row.appendChild(unit));
+        }
+
+        function addUnit(armyColor, unitType) {
+            const totalUnits = document.querySelectorAll(`.${armyColor}-army .unit`).length;
+            if (totalUnits >= 15) {
+                alert('Army is at maximum capacity (15 units)');
+                return;
+            }
+
+            const row = findAvailableRow(armyColor, unitType);
+            if (row) {
+                const unit = document.createElement('div');
+                unit.className = 'unit';
+                unit.textContent = unitType === 'Ashigaru' ? 'a' : unitType.charAt(0);
+                unit.dataset.type = unitType;
+                unit.onclick = () => removeUnit(unit);
+                row.appendChild(unit);
+
+                // Sort units in the row
+                sortRowUnits(row);
+            } else {
+                alert('No space available in army');
+            }
+        }
+
+        function removeUnit(unitElement) {
+            unitElement.remove();
+        }
+
+        function resetArmy(armyColor) {
+            const grid = document.getElementById(`${armyColor}ArmyGrid`);
+            const rows = grid.querySelectorAll('.army-row');
+            rows.forEach(row => {
+                row.innerHTML = '';
+            });
+            initializeArmy(armyColor);
+        }
+
+        function rollDice(maxHits, totalDice) {
+            let hits = 0;
+            for (let i = 0; i < totalDice; i++) {
+                if (Math.floor(Math.random() * 12) + 1 <= maxHits) {
+                    hits++;
+                }
+            }
+            return hits;
+        }
+
+        function startBattle() {
+            const redArmy = document.querySelectorAll('#redArmyGrid .unit');
+            const blueArmy = document.querySelectorAll('#blueArmyGrid .unit');
+            
+            if (redArmy.length === 0 || blueArmy.length === 0) {
+                alert('Both armies must have units to start battle!');
+                return;
+            }
+
+            // Reset log
+            document.getElementById('battleLog').innerHTML = 'Battle Started';
+
+            // Missile Phase (Archers and Gunners)
+            currentBattleState = simulateMissilePhase(redArmy, blueArmy);
+            prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
+        }
+
+        function simulateMissilePhase(redArmy, blueArmy) {
+            const redMissileUnits = Array.from(redArmy).filter(u => 
+                ['Archers', 'Gunners'].includes(u.dataset.type)
+            );
+            const blueMissileUnits = Array.from(blueArmy).filter(u => 
+                ['Archers', 'Gunners'].includes(u.dataset.type)
+            );
+
+            const redMissileHits = redMissileUnits.reduce((total, unit) => {
+                const rules = UNIT_HIT_RULES[unit.dataset.type];
+                return total + rollDice(rules.hits, rules.dice);
+            }, 0);
+
+            const blueMissileHits = blueMissileUnits.reduce((total, unit) => {
+                const rules = UNIT_HIT_RULES[unit.dataset.type];
+                return total + rollDice(rules.hits, rules.dice);
+            }, 0);
+
+            // Log missile phase results
+            const log = document.getElementById('battleLog');
+            log.innerHTML += `<br>Missile Phase:<br>` +
+                `Red Missile Units Hit: ${redMissileHits}<br>` +
+                `Blue Missile Units Hit: ${blueMissileHits}`;
+
+            return {
+                redArmy,
+                blueArmy,
+                blueCasualties: blueMissileHits,
+                redCasualties: redMissileHits
+            };
+        }
+
+        function prepareCasualtyRemoval(armyColor, casualties) {
+            const instructions = document.getElementById('casualtyInstructions');
+            const removeButton = document.getElementById('removeCasualtiesBtn');
+            
+            // Reset any previous selections
+            const previousSelected = document.querySelectorAll('.selected-casualty');
+            previousSelected.forEach(el => el.classList.remove('selected-casualty'));
+
+            instructions.textContent = `${armyColor.toUpperCase()} Army: Select ${casualties} casualties to remove`;
+            removeButton.style.display = 'block';
+
+            // Prepare the army for casualty selection
+            const armyGrid = document.getElementById(`${armyColor}ArmyGrid`);
+            const units = armyGrid.querySelectorAll('.unit');
+            
+            // Add click handler for casualty selection
+            units.forEach(unit => {
+                unit.onclick = () => {
+                    if (document.querySelectorAll('.selected-casualty').length < currentBattleState[`${armyColor}Casualties`]) {
+                        unit.classList.toggle('selected-casualty');
+                    }
+                };
+            });
+        }
+
+        function removeCasualties() {
+            const selectedCasualties = document.querySelectorAll('.selected-casualty');
+            const currentPhaseArmy = currentBattleState.blueCasualties > 0 ? 'blue' : 'red';
+            const expectedCasualties = currentBattleState[`${currentPhaseArmy}Casualties`];
+
+            // Validate correct number of casualties selected
+            if (selectedCasualties.length !== expectedCasualties) {
+                alert(`Please select exactly ${expectedCasualties} casualties`);
+                return;
+            }
+
+            // Remove selected casualties
+            selectedCasualties.forEach(casualty => casualty.remove());
+
+            // Hide remove button
+            document.getElementById('removeCasualtiesBtn').style.display = 'none';
+
+            // Proceed to next phase
+            if (currentBattleState.blueCasualties > 0) {
+                // Just finished blue army casualties, now do red army
+                prepareCasualtyRemoval('red', currentBattleState.redCasualties);
+            } else {
+                // Proceed to melee phase
+                currentBattleState = simulateMeleePhase(
+                    document.querySelectorAll('#redArmyGrid .unit'),
+                    document.querySelectorAll('#blueArmyGrid .unit')
+                );
+                prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
+            }
+        }
+
+        function simulateMeleePhase(redArmy, blueArmy) {
+            const redMeleeUnits = Array.from(redArmy).filter(u => 
+                ['Daimyo', 'Samurai', 'Ashigaru'].includes(u.dataset.type)
+            );
+            const blueMeleeUnits = Array.from(blueArmy).filter(u => 
+                ['Daimyo', 'Samurai', 'Ashigaru'].includes(u.dataset.type)
+            );
+
+            const redMeleeHits = redMeleeUnits.reduce((total, unit) => {
+                const rules = UNIT_HIT_RULES[unit.dataset.type];
+                return total + rollDice(rules.hits, rules.dice);
+            }, 0);
+
+            const blueMeleeHits = blueMeleeUnits.reduce((total, unit) => {
+                const rules = UNIT_HIT_RULES[unit.dataset.type];
+                return total + rollDice(rules.hits, rules.dice);
+            }, 0);
+
+            // Log melee phase results
+            const log = document.getElementById('battleLog');
+            log.innerHTML += `<br>Melee Phase:<br>` +
+                `Red Melee Units Hit: ${redMeleeHits}<br>` +
+                `Blue Melee Units Hit: ${blueMeleeHits}`;
+
+            return {
+                redArmy,
+                blueArmy,
+                blueCasualties: blueMeleeHits,
+                redCasualties: redMeleeHits
+            };
+        }
+    </script>
+</body>
+</html>
