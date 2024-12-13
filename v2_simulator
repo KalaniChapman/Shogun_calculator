@@ -146,31 +146,30 @@
                 }
             }
         
-            // Rows 2 and 3: Gunners first, then Ashigaru
+            // Optimized placement for Gunners and Ashigaru
             if (['Gunners', 'Ashigaru'].includes(unitType)) {
                 const secondRow = rows[1];
                 const thirdRow = rows[2];
-                
-                // Prioritize Gunners in the second row first
-                if (unitType === 'Gunners' && secondRow.children.length < 5) {
-                    return secondRow;
-                }
-                
-                // If no more space for Gunners in second row, try third row
-                if (unitType === 'Gunners' && thirdRow.children.length < 5) {
-                    return thirdRow;
-                }
-                
-                // For Ashigaru, first try second row
-                if (unitType === 'Ashigaru') {
-                    // Check if there's space in second row
-                    if (secondRow.children.length < 5) {
-                        return secondRow;
+        
+                // Aggregate existing units in last two rows
+                const secondRowUnits = Array.from(secondRow.children).map(el => el.dataset.type);
+                const thirdRowUnits = Array.from(thirdRow.children).map(el => el.dataset.type);
+                const totalUnitsInLastTwoRows = [...secondRowUnits, ...thirdRowUnits];
+        
+                // Specific logic for balanced placement
+                const gunnerCount = totalUnitsInLastTwoRows.filter(type => type === 'Gunners').length;
+                const ashigaruCount = totalUnitsInLastTwoRows.filter(type => type === 'Ashigaru').length;
+        
+                // Determine unit type to balance
+                if (unitType === 'Gunners') {
+                    if (gunnerCount < 5) {
+                        return (gunnerCount < secondRow.children.length) ? secondRow : thirdRow;
                     }
-                    
-                    // If second row is full, try third row
-                    if (thirdRow.children.length < 5) {
-                        return thirdRow;
+                }
+        
+                if (unitType === 'Ashigaru') {
+                    if (ashigaruCount < 5) {
+                        return (ashigaruCount < secondRow.children.length) ? secondRow : thirdRow;
                     }
                 }
             }
@@ -187,18 +186,35 @@
                 'Ashigaru': 2
             };
         
-            const units = Array.from(row.children);
-            
-            // Sort units based on priority
-            const sortedUnits = units.sort((a, b) => {
-                const priorityA = priority[a.dataset.type] || 99;
-                const priorityB = priority[b.dataset.type] || 99;
-                return priorityA - priorityB;
-            });
+            // When sorting last two rows, prioritize keeping Gunners together
+            if (row.getAttribute('row') === '1' || row.getAttribute('row') === '2') {
+                const units = Array.from(row.children);
+                const gunnerRows = document.querySelectorAll('.army-row[row="1"], .army-row[row="2"]');
         
-            // Clear and re-add sorted units
-            row.innerHTML = '';
-            sortedUnits.forEach(unit => row.appendChild(unit));
+                // Collect all gunners from both rows
+                const allGunners = Array.from(gunnerRows)
+                    .flatMap(r => Array.from(r.children))
+                    .filter(unit => unit.dataset.type === 'Gunners');
+        
+                const allAshigaru = Array.from(gunnerRows)
+                    .flatMap(r => Array.from(r.children))
+                    .filter(unit => unit.dataset.type === 'Ashigaru');
+        
+                // Clear existing rows
+                gunnerRows.forEach(r => r.innerHTML = '');
+        
+                // First, distribute Gunners
+                const secondRow = document.querySelector('.army-row[row="1"]');
+                const thirdRow = document.querySelector('.army-row[row="2"]');
+                
+                allGunners.slice(0, 5).forEach(unit => secondRow.appendChild(unit));
+                allGunners.slice(5).forEach(unit => thirdRow.appendChild(unit));
+        
+                // Then distribute Ashigaru
+                allAshigaru.slice(0, Math.max(0, 5 - secondRow.children.length)).forEach(unit => secondRow.appendChild(unit));
+                allAshigaru.slice(5 - secondRow.children.length).forEach(unit => thirdRow.appendChild(unit));
+        
+                return;
         }
 
         function addUnit(armyColor, unitType) {
