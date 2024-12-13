@@ -277,47 +277,55 @@
             const log = document.getElementById('battleLog');
             log.innerHTML += '<br>Missile Phase:';
         
-            const redMissileUnits = Array.from(redArmy).filter(u => 
-                ['Archers', 'Gunners'].includes(u.dataset.type)
-            );
-            const blueMissileUnits = Array.from(blueArmy).filter(u => 
-                ['Archers', 'Gunners'].includes(u.dataset.type)
-            );
+            const redMissileUnits = {
+                Archers: Array.from(redArmy).filter(u => u.dataset.type === 'Archers'),
+                Gunners: Array.from(redArmy).filter(u => u.dataset.type === 'Gunners')
+            };
         
-            // Track hits and detailed rolls for each unit
-            const redMissileHitsDetails = redMissileUnits.map(unit => {
-                const rules = UNIT_HIT_RULES[unit.dataset.type];
-                const roll = Math.floor(Math.random() * 12) + 1;
-                const hit = roll <= rules.hits;
-                
-                // Log individual unit performance
-                log.innerHTML += `<br>Red ${unit.dataset.type}: ${hit ? `hit (rolled ${roll})` : `miss (rolled ${roll})`}`;
-                
-                return { unit, hit };
-            });
+            const blueMissileUnits = {
+                Archers: Array.from(blueArmy).filter(u => u.dataset.type === 'Archers'),
+                Gunners: Array.from(blueArmy).filter(u => u.dataset.type === 'Gunners')
+            };
         
-            const blueMissileHitsDetails = blueMissileUnits.map(unit => {
-                const rules = UNIT_HIT_RULES[unit.dataset.type];
-                const roll = Math.floor(Math.random() * 12) + 1;
-                const hit = roll <= rules.hits;
-                
-                // Log individual unit performance
-                log.innerHTML += `<br>Blue ${unit.dataset.type}: ${hit ? `hit (rolled ${roll})` : `miss (rolled ${roll})`}`;
-                
-                return { unit, hit };
-            });
+            // Function to process unit rolls and create log
+            const processUnitRolls = (army, units) => {
+                let log = '';
+                let hits = 0;
         
-            const redMissileHits = redMissileHitsDetails.filter(detail => detail.hit).length;
-            const blueMissileHits = blueMissileHitsDetails.filter(detail => detail.hit).length;
+                ['Archers', 'Gunners'].forEach(type => {
+                    if (units[type].length > 0) {
+                        const typeRolls = units[type].map(unit => {
+                            const rules = UNIT_HIT_RULES[type];
+                            const roll = Math.floor(Math.random() * 12) + 1;
+                            const hit = roll <= rules.hits;
+                            return hit ? `hit (${roll})` : `miss (${roll})`;
+                        });
+                        
+                        log += `${army} ${type}: ${typeRolls.join(', ')}\n`;
+                        hits += units[type].filter((unit, index) => {
+                            const rules = UNIT_HIT_RULES[type];
+                            return Math.floor(Math.random() * 12) + 1 <= rules.hits;
+                        }).length;
+                    }
+                });
         
-            log.innerHTML += `<br>Total Red Missile Hits: ${redMissileHits}`;
-            log.innerHTML += `<br>Total Blue Missile Hits: ${blueMissileHits}`;
+                log += `\nTotal ${army} Missile Hits: ${hits}\n`;
+                return { log, hits };
+            };
+        
+            // Process missile phase for both armies
+            const redResults = processUnitRolls('Red', redMissileUnits);
+            const blueResults = processUnitRolls('Blue', blueMissileUnits);
+        
+            // Update battle log
+            document.getElementById('battleLog').innerHTML += 
+                `${redResults.log}\n${blueResults.log}`;
         
             return {
                 redArmy,
                 blueArmy,
-                blueCasualties: redMissileHits,
-                redCasualties: blueMissileHits
+                blueCasualties: redResults.hits,
+                redCasualties: blueResults.hits
             };
         }
 
@@ -379,34 +387,60 @@
         }
 
         function simulateMeleePhase(redArmy, blueArmy) {
-            const redMeleeUnits = Array.from(redArmy).filter(u => 
-                ['Daimyo', 'Samurai', 'Ashigaru'].includes(u.dataset.type)
-            );
-            const blueMeleeUnits = Array.from(blueArmy).filter(u => 
-                ['Daimyo', 'Samurai', 'Ashigaru'].includes(u.dataset.type)
-            );
-
-            const redMeleeHits = redMeleeUnits.reduce((total, unit) => {
-                const rules = UNIT_HIT_RULES[unit.dataset.type];
-                return total + rollDice(rules.hits, rules.dice);
-            }, 0);
-
-            const blueMeleeHits = blueMeleeUnits.reduce((total, unit) => {
-                const rules = UNIT_HIT_RULES[unit.dataset.type];
-                return total + rollDice(rules.hits, rules.dice);
-            }, 0);
-
-            // Log melee phase results
             const log = document.getElementById('battleLog');
-            log.innerHTML += `<br>Melee Phase:<br>` +
-                `Red Melee Units Hit: ${redMeleeHits}<br>` +
-                `Blue Melee Units Hit: ${blueMeleeHits}`;
-
+            log.innerHTML += '<br>Melee Phase:';
+        
+            const redMeleeUnits = {
+                Daimyo: Array.from(redArmy).filter(u => u.dataset.type === 'Daimyo'),
+                Samurai: Array.from(redArmy).filter(u => u.dataset.type === 'Samurai'),
+                Ashigaru: Array.from(redArmy).filter(u => u.dataset.type === 'Ashigaru')
+            };
+        
+            const blueMeleeUnits = {
+                Daimyo: Array.from(blueArmy).filter(u => u.dataset.type === 'Daimyo'),
+                Samurai: Array.from(blueArmy).filter(u => u.dataset.type === 'Samurai'),
+                Ashigaru: Array.from(blueArmy).filter(u => u.dataset.type === 'Ashigaru')
+            };
+        
+            // Function to process unit rolls and create log (similar to missile phase)
+            const processUnitRolls = (army, units) => {
+                let log = '';
+                let hits = 0;
+        
+                ['Daimyo', 'Samurai', 'Ashigaru'].forEach(type => {
+                    if (units[type].length > 0) {
+                        const typeRolls = units[type].map(unit => {
+                            const rules = UNIT_HIT_RULES[type];
+                            const roll = Math.floor(Math.random() * 12) + 1;
+                            const hit = roll <= rules.hits;
+                            return hit ? `hit (${roll})` : `miss (${roll})`;
+                        });
+                        
+                        log += `${army} ${type}: ${typeRolls.join(', ')}\n`;
+                        hits += units[type].filter((unit, index) => {
+                            const rules = UNIT_HIT_RULES[type];
+                            return Math.floor(Math.random() * 12) + 1 <= rules.hits;
+                        }).length;
+                    }
+                });
+        
+                log += `\nTotal ${army} Melee Hits: ${hits}\n`;
+                return { log, hits };
+            };
+        
+            // Process melee phase for both armies
+            const redResults = processUnitRolls('Red', redMeleeUnits);
+            const blueResults = processUnitRolls('Blue', blueMeleeUnits);
+        
+            // Update battle log
+            document.getElementById('battleLog').innerHTML += 
+                `${redResults.log}\n${blueResults.log}`;
+        
             return {
                 redArmy,
                 blueArmy,
-                blueCasualties: blueMeleeHits,
-                redCasualties: redMeleeHits
+                blueCasualties: redResults.hits,
+                redCasualties: blueResults.hits
             };
         }
     </script>
