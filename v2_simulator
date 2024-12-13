@@ -137,35 +137,65 @@
         function findAvailableRow(armyColor, unitType) {
             const grid = document.getElementById(`${armyColor}ArmyGrid`);
             const rows = grid.querySelectorAll('.army-row');
-            const priority = ['Daimyo', 'Archers', 'Samurai', 'Gunners', 'Ashigaru'];
-
-            // Handle first row (prioritized units)
-            if (priority.includes(unitType)) {
+            
+            // First row: Daimyo (pre-populated), Archers, and Samurai
+            if (['Archers', 'Samurai'].includes(unitType)) {
                 const firstRow = rows[0];
                 if (firstRow.children.length < 5) {
                     return firstRow;
                 }
             }
-
-            // Find first row with space
-            for (let row of rows) {
-                if (row.children.length < 5) {
-                    return row;
+        
+            // Rows 2 and 3: Gunners first, then Ashigaru
+            if (['Gunners', 'Ashigaru'].includes(unitType)) {
+                const secondRow = rows[1];
+                const thirdRow = rows[2];
+                
+                // Prioritize Gunners in the second row first
+                if (unitType === 'Gunners' && secondRow.children.length < 5) {
+                    return secondRow;
+                }
+                
+                // If no more space for Gunners in second row, try third row
+                if (unitType === 'Gunners' && thirdRow.children.length < 5) {
+                    return thirdRow;
+                }
+                
+                // For Ashigaru, first try second row
+                if (unitType === 'Ashigaru') {
+                    // Check if there's space in second row
+                    if (secondRow.children.length < 5) {
+                        return secondRow;
+                    }
+                    
+                    // If second row is full, try third row
+                    if (thirdRow.children.length < 5) {
+                        return thirdRow;
+                    }
                 }
             }
-
+        
             return null;
         }
 
         function sortRowUnits(row) {
-            const priority = ['Daimyo', 'Archers', 'Samurai', 'Gunners', 'Ashigaru'];
+            const priority = {
+                'Daimyo': 1,  // Always first in first row
+                'Archers': 2,
+                'Samurai': 3,
+                'Gunners': 1, // First in subsequent rows
+                'Ashigaru': 2
+            };
+        
             const units = Array.from(row.children);
             
             // Sort units based on priority
-            const sortedUnits = priority
-                .map(type => units.find(u => u.dataset.type === type))
-                .filter(u => u);
-
+            const sortedUnits = units.sort((a, b) => {
+                const priorityA = priority[a.dataset.type] || 99;
+                const priorityB = priority[b.dataset.type] || 99;
+                return priorityA - priorityB;
+            });
+        
             // Clear and re-add sorted units
             row.innerHTML = '';
             sortedUnits.forEach(unit => row.appendChild(unit));
@@ -177,20 +207,29 @@
                 alert('Army is at maximum capacity (15 units)');
                 return;
             }
-
+        
             const row = findAvailableRow(armyColor, unitType);
             if (row) {
                 const unit = document.createElement('div');
                 unit.className = 'unit';
-                unit.textContent = unitType === 'Ashigaru' ? 'a' : unitType.charAt(0);
+                
+                // Set unit text based on type
+                switch(unitType) {
+                    case 'Daimyo': unit.textContent = 'D'; break;
+                    case 'Archers': unit.textContent = 'A'; break;
+                    case 'Samurai': unit.textContent = 'S'; break;
+                    case 'Gunners': unit.textContent = 'g'; break;
+                    case 'Ashigaru': unit.textContent = 'a'; break;
+                }
+                
                 unit.dataset.type = unitType;
                 unit.onclick = () => removeUnit(unit);
                 row.appendChild(unit);
-
+        
                 // Sort units in the row
                 sortRowUnits(row);
             } else {
-                alert('No space available in army');
+                alert('No space available for this unit type in the army');
             }
         }
 
