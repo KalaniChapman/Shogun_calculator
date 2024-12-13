@@ -274,29 +274,53 @@
         }
 
         function simulateMissilePhase(redArmy, blueArmy) {
+            const log = document.getElementById('battleLog');
+            log.innerHTML += '<br>Missile Phase:';
+        
             const redMissileUnits = Array.from(redArmy).filter(u => 
                 ['Archers', 'Gunners'].includes(u.dataset.type)
             );
             const blueMissileUnits = Array.from(blueArmy).filter(u => 
                 ['Archers', 'Gunners'].includes(u.dataset.type)
             );
-
-            const redMissileHits = redMissileUnits.reduce((total, unit) => {
+        
+            // Track hits and detailed rolls for each unit
+            const redMissileHitsDetails = redMissileUnits.map(unit => {
                 const rules = UNIT_HIT_RULES[unit.dataset.type];
-                return total + rollDice(rules.hits, rules.dice);
-            }, 0);
-
-            const blueMissileHits = blueMissileUnits.reduce((total, unit) => {
+                const unitRolls = Array.from({length: rules.dice}, () => Math.floor(Math.random() * 12) + 1);
+                const unitHits = unitRolls.filter(roll => roll <= rules.hits).length;
+                
+                // Log individual unit performance
+                const hitDetails = unitRolls.map(roll => 
+                    roll <= rules.hits ? `hit (rolled ${roll})` : `miss (rolled ${roll})`
+                );
+                
+                log.innerHTML += `<br>Red ${unit.dataset.type}: ${hitDetails.join(', ')}`;
+                
+                return { unit, hits: unitHits };
+            });
+        
+            const blueMissileHitsDetails = blueMissileUnits.map(unit => {
                 const rules = UNIT_HIT_RULES[unit.dataset.type];
-                return total + rollDice(rules.hits, rules.dice);
-            }, 0);
-
-            // Log missile phase results
-            const log = document.getElementById('battleLog');
-            log.innerHTML += `<br>Missile Phase:<br>` +
-                `Red Missile Units Hit: ${redMissileHits}<br>` +
-                `Blue Missile Units Hit: ${blueMissileHits}`;
-
+                const unitRolls = Array.from({length: rules.dice}, () => Math.floor(Math.random() * 12) + 1);
+                const unitHits = unitRolls.filter(roll => roll <= rules.hits).length;
+                
+                // Log individual unit performance
+                const hitDetails = unitRolls.map(roll => 
+                    roll <= rules.hits ? `hit (rolled ${roll})` : `miss (rolled ${roll})`
+                );
+                
+                log.innerHTML += `<br>Blue ${unit.dataset.type}: ${hitDetails.join(', ')}`;
+                
+                return { unit, hits: unitHits };
+            });
+        
+            const redMissileHits = redMissileHitsDetails.reduce((total, detail) => total + detail.hits, 0);
+            const blueMissileHits = blueMissileHitsDetails.reduce((total, detail) => total + detail.hits, 0);
+        
+            log.innerHTML += `<br>Total Red Missile Hits: ${redMissileHits}`;
+            log.innerHTML += `<br>Total Blue Missile Hits: ${blueMissileHits}`;
+        
             return {
                 redArmy,
                 blueArmy,
