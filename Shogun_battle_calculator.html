@@ -287,36 +287,28 @@
             // Track hits and detailed rolls for each unit
             const redMissileHitsDetails = redMissileUnits.map(unit => {
                 const rules = UNIT_HIT_RULES[unit.dataset.type];
-                const unitRolls = Array.from({length: rules.dice}, () => Math.floor(Math.random() * 12) + 1);
-                const unitHits = unitRolls.filter(roll => roll <= rules.hits).length;
+                const roll = Math.floor(Math.random() * 12) + 1;
+                const hit = roll <= rules.hits;
                 
                 // Log individual unit performance
-                const hitDetails = unitRolls.map(roll => 
-                    roll <= rules.hits ? `hit (rolled ${roll})` : `miss (rolled ${roll})`
-                );
+                log.innerHTML += `<br>Red ${unit.dataset.type}: ${hit ? `hit (rolled ${roll})` : `miss (rolled ${roll})`}`;
                 
-                log.innerHTML += `<br>Red ${unit.dataset.type}: ${hitDetails.join(', ')}`;
-                
-                return { unit, hits: unitHits };
+                return { unit, hit };
             });
         
             const blueMissileHitsDetails = blueMissileUnits.map(unit => {
                 const rules = UNIT_HIT_RULES[unit.dataset.type];
-                const unitRolls = Array.from({length: rules.dice}, () => Math.floor(Math.random() * 12) + 1);
-                const unitHits = unitRolls.filter(roll => roll <= rules.hits).length;
+                const roll = Math.floor(Math.random() * 12) + 1;
+                const hit = roll <= rules.hits;
                 
                 // Log individual unit performance
-                const hitDetails = unitRolls.map(roll => 
-                    roll <= rules.hits ? `hit (rolled ${roll})` : `miss (rolled ${roll})`
-                );
+                log.innerHTML += `<br>Blue ${unit.dataset.type}: ${hit ? `hit (rolled ${roll})` : `miss (rolled ${roll})`}`;
                 
-                log.innerHTML += `<br>Blue ${unit.dataset.type}: ${hitDetails.join(', ')}`;
-                
-                return { unit, hits: unitHits };
+                return { unit, hit };
             });
         
-            const redMissileHits = redMissileHitsDetails.reduce((total, detail) => total + detail.hits, 0);
-            const blueMissileHits = blueMissileHitsDetails.reduce((total, detail) => total + detail.hits, 0);
+            const redMissileHits = redMissileHitsDetails.filter(detail => detail.hit).length;
+            const blueMissileHits = blueMissileHitsDetails.filter(detail => detail.hit).length;
         
             log.innerHTML += `<br>Total Red Missile Hits: ${redMissileHits}`;
             log.innerHTML += `<br>Total Blue Missile Hits: ${blueMissileHits}`;
@@ -324,8 +316,8 @@
             return {
                 redArmy,
                 blueArmy,
-                blueCasualties: blueMissileHits,
-                redCasualties: redMissileHits
+                blueCasualties: redMissileHits,
+                redCasualties: blueMissileHits
             };
         }
 
