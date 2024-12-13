@@ -350,22 +350,23 @@
             const selectedCasualties = document.querySelectorAll('.selected-casualty');
             const currentPhaseArmy = currentBattleState.blueCasualties > 0 ? 'blue' : 'red';
             const expectedCasualties = currentBattleState[`${currentPhaseArmy}Casualties`];
-
+        
             // Validate correct number of casualties selected
             if (selectedCasualties.length !== expectedCasualties) {
                 alert(`Please select exactly ${expectedCasualties} casualties`);
                 return;
             }
-
+        
             // Remove selected casualties
             selectedCasualties.forEach(casualty => casualty.remove());
-
+        
             // Hide remove button
             document.getElementById('removeCasualtiesBtn').style.display = 'none';
-
+        
             // Proceed to next phase
             if (currentBattleState.blueCasualties > 0) {
                 // Just finished blue army casualties, now do red army
+                currentBattleState.blueCasualties = 0; // Reset blue casualties
                 prepareCasualtyRemoval('red', currentBattleState.redCasualties);
             } else {
                 // Proceed to melee phase
