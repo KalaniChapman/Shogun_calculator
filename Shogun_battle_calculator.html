@@ -265,8 +265,9 @@
                 return;
             }
         
-            // Reset log
-            document.getElementById('battleLog').innerHTML = 'Battle Started';
+            // Append to log instead of replacing
+            const log = document.getElementById('battleLog');
+            log.innerHTML += (log.innerHTML ? '\n\n' : '') + 'Battle Started\n';
         
             // Missile Phase (Archers and Gunners)
             currentBattleState = simulateMissilePhase(redArmy, blueArmy);
@@ -275,7 +276,7 @@
 
         function simulateMissilePhase(redArmy, blueArmy) {
             const log = document.getElementById('battleLog');
-            log.innerHTML += '\nMissile Phase:';
+            log.innerHTML += '\nMissile Phase:\n';
         
             const redMissileUnits = {
                 Archers: Array.from(redArmy).filter(u => u.dataset.type === 'Archers'),
@@ -288,7 +289,7 @@
             };
         
             // Function to process unit rolls and create log
-            const processUnitRolls = (army, units, armyColor) => {
+            const processUnitRolls = (army, units) => {
                 let missileLog = '';
                 let hits = 0;
         
@@ -312,12 +313,12 @@
             };
         
             // Process missile phase for both armies
-            const redResults = processUnitRolls('Red', redMissileUnits, 'red');
-            const blueResults = processUnitRolls('Blue', blueMissileUnits, 'blue');
+            const redResults = processUnitRolls('Red', redMissileUnits);
+            const blueResults = processUnitRolls('Blue', blueMissileUnits);
         
             // Update battle log
             document.getElementById('battleLog').innerHTML += 
-                `${redResults.log}${blueResults.log}`;
+                redResults.log + '\n' + blueResults.log;
         
             // Check for army destruction
             const redArmyUnits = document.querySelectorAll('#redArmyGrid .unit');
@@ -325,13 +326,13 @@
         
             if (blueResults.hits >= blueArmyUnits.length) {
                 document.getElementById('battleLog').innerHTML += 
-                    '\nRed Army Destroys Blue Army! Blue Army is annihilated.';
+                    '\nRed Army Destroys Blue Army! Blue Army is annihilated.\n';
                 return null;
             }
         
             if (redResults.hits >= redArmyUnits.length) {
                 document.getElementById('battleLog').innerHTML += 
-                    '\nBlue Army Destroys Red Army! Red Army is annihilated.';
+                    '\nBlue Army Destroys Red Army! Red Army is annihilated.\n';
                 return null;
             }
         
@@ -465,7 +466,7 @@
 
         function simulateMeleePhase(redArmy, blueArmy) {
             const log = document.getElementById('battleLog');
-            log.innerHTML += '\nMelee Phase:';
+            log.innerHTML += '\nMelee Phase:\n';
         
             const redMeleeUnits = {
                 Daimyo: Array.from(redArmy).filter(u => u.dataset.type === 'Daimyo'),
@@ -509,7 +510,7 @@
         
             // Update battle log
             document.getElementById('battleLog').innerHTML += 
-                `${redResults.log}${blueResults.log}`;
+                redResults.log + '\n' + blueResults.log;
         
             // Check for army destruction
             const redArmyUnits = document.querySelectorAll('#redArmyGrid .unit');
@@ -517,13 +518,13 @@
         
             if (blueResults.hits >= blueArmyUnits.length) {
                 document.getElementById('battleLog').innerHTML += 
-                    '\nRed Army Destroys Blue Army! Blue Army is annihilated.';
+                    '\nRed Army Destroys Blue Army! Blue Army is annihilated.\n';
                 return null;
             }
         
             if (redResults.hits >= redArmyUnits.length) {
                 document.getElementById('battleLog').innerHTML += 
-                    '\nBlue Army Destroys Red Army! Red Army is annihilated.';
+                    '\nBlue Army Destroys Red Army! Red Army is annihilated.\n';
                 return null;
             }
         
