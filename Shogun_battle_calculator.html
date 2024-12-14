@@ -115,6 +115,7 @@
         };
 
         let currentBattleState = null;
+        let combatRound = 0;
 
         // Initialize armies with Daimyo
         function initializeArmy(armyColor) {
@@ -255,7 +256,7 @@
             }
             return hits;
         }
-
+   
         function startBattle() {
             const redArmy = document.querySelectorAll('#redArmyGrid .unit');
             const blueArmy = document.querySelectorAll('#blueArmyGrid .unit');
@@ -265,9 +266,12 @@
                 return;
             }
         
+            // Increment combat round
+            combatRound++;
+        
             // Append to log instead of replacing
             const log = document.getElementById('battleLog');
-            log.innerHTML += (log.innerHTML ? '<br><br>' : '') + 'Battle Started<br>';
+            log.innerHTML += (log.innerHTML ? '<br><br>' : '') + `Combat Round ${combatRound}<br>`;
         
             // Missile Phase (Archers and Gunners)
             currentBattleState = simulateMissilePhase(redArmy, blueArmy);
@@ -367,16 +371,21 @@
                     );
                     
                     if (currentBattleState) {
-                        const confirmContinue = confirm('Do you want to continue the battle?');
-      if (confirmContinue) {
-                            startBattle();
-                        } else {
-                            document.getElementById('battleLog').innerHTML += 
-                                '<br>Attacker chose to withdraw. Battle is over.';
-                        }
+                        // Modify this section to handle melee phase casualties
+                        prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
                     }
-                    return;
                 } else {
+                    // After blue army casualties, check for melee casualties of red army
+                    const confirmContinue = confirm('Do you want to continue the battle?');
+                    if (confirmContinue) {
+                        startBattle(); // This will increment the round
+                    } else {
+                        document.getElementById('battleLog').innerHTML += 
+                            '<br>Attacker chose to withdraw. Battle is over.';
+                    }
+                }
+                return;
+            } else {
                     const confirmContinue = confirm('Do you want to continue the battle?');
                     if (confirmContinue) {
                         startBattle();
@@ -444,22 +453,15 @@
                 currentBattleState.blueCasualties = 0; // Reset blue casualties
                 prepareCasualtyRemoval('red', currentBattleState.redCasualties);
             } else {
-                // Proceed to melee phase
+                // Completed red army casualties, proceed to melee phase
                 currentBattleState = simulateMeleePhase(
                     document.querySelectorAll('#redArmyGrid .unit'),
                     document.querySelectorAll('#blueArmyGrid .unit')
                 );
         
                 if (currentBattleState) {
-                    // Ask user to continue battle
-                    const confirmContinue = confirm('Do you want to continue the battle?');
-                    if (confirmContinue) {
-                        // Start a new round
-                        startBattle();
-                    } else {
-                        document.getElementById('battleLog').innerHTML += 
-                            '<br>Attacker chose to withdraw. Battle is over.';
-                    }
+                    // Prompt for casualties
+                    prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
                 }
             }
         }
