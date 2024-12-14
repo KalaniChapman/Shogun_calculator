@@ -371,21 +371,16 @@
                     );
                     
                     if (currentBattleState) {
-                        // Modify this section to handle melee phase casualties
-                        prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
+                        const confirmContinue = confirm('Do you want to continue the battle?');
+                        if (confirmContinue) {
+                            startBattle();
+                        } else {
+                            document.getElementById('battleLog').innerHTML += 
+                                '<br>Attacker chose to withdraw. Battle is over.';
+                        }
                     }
+                    return;
                 } else {
-                    // After blue army casualties, check for melee casualties of red army
-                    const confirmContinue = confirm('Do you want to continue the battle?');
-                    if (confirmContinue) {
-                        startBattle(); // This will increment the round
-                    } else {
-                        document.getElementById('battleLog').innerHTML += 
-                            '<br>Attacker chose to withdraw. Battle is over.';
-                    }
-                }
-                return;
-            } else {
                     const confirmContinue = confirm('Do you want to continue the battle?');
                     if (confirmContinue) {
                         startBattle();
