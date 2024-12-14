@@ -267,7 +267,7 @@
         
             // Append to log instead of replacing
             const log = document.getElementById('battleLog');
-            log.innerHTML += (log.innerHTML ? '\n\n' : '') + 'Battle Started\n';
+            log.innerHTML += (log.innerHTML ? '<br><br>' : '') + 'Battle Started<br>';
         
             // Missile Phase (Archers and Gunners)
             currentBattleState = simulateMissilePhase(redArmy, blueArmy);
@@ -276,7 +276,7 @@
 
         function simulateMissilePhase(redArmy, blueArmy) {
             const log = document.getElementById('battleLog');
-            log.innerHTML += '\nMissile Phase:\n';
+            log.innerHTML += '<br>Missile Phase:<br>';
         
             const redMissileUnits = {
                 Archers: Array.from(redArmy).filter(u => u.dataset.type === 'Archers'),
@@ -302,13 +302,13 @@
                             return hit ? `hit (${roll})` : `miss (${roll})`;
                         });
                         
-                        missileLog += `${army} ${type}: ${typeRolls.join(', ')}\n`;
+                        missileLog += `${army} ${type}: ${typeRolls.join(', ')}<br>`;
                         const typeHits = typeRolls.filter(roll => roll.startsWith('hit')).length;
                         hits += typeHits;
                     }
                 });
         
-                missileLog += `Total ${army} Missile Hits: ${hits}\n`;
+                missileLog += `Total ${army} Missile Hits: ${hits}<br>`;
                 return { log: missileLog, hits };
             };
         
@@ -318,7 +318,7 @@
         
             // Update battle log
             document.getElementById('battleLog').innerHTML += 
-                redResults.log + '\n' + blueResults.log;
+                redResults.log + '<br>' + blueResults.log;
         
             // Check for army destruction
             const redArmyUnits = document.querySelectorAll('#redArmyGrid .unit');
@@ -326,13 +326,13 @@
         
             if (blueResults.hits >= blueArmyUnits.length) {
                 document.getElementById('battleLog').innerHTML += 
-                    '\nRed Army Destroys Blue Army! Blue Army is annihilated.\n';
+                    '<br>Red Army Destroys Blue Army! Blue Army is annihilated.<br>';
                 return null;
             }
         
             if (redResults.hits >= redArmyUnits.length) {
                 document.getElementById('battleLog').innerHTML += 
-                    '\nBlue Army Destroys Red Army! Red Army is annihilated.\n';
+                    '<br>Blue Army Destroys Red Army! Red Army is annihilated.<br>';
                 return null;
             }
         
@@ -368,11 +368,11 @@
                     
                     if (currentBattleState) {
                         const confirmContinue = confirm('Do you want to continue the battle?');
-                        if (confirmContinue) {
+      if (confirmContinue) {
                             startBattle();
                         } else {
                             document.getElementById('battleLog').innerHTML += 
-                                '\nAttacker chose to withdraw. Battle is over.';
+                                '<br>Attacker chose to withdraw. Battle is over.';
                         }
                     }
                     return;
@@ -382,7 +382,7 @@
                         startBattle();
                     } else {
                         document.getElementById('battleLog').innerHTML += 
-                            '\nAttacker chose to withdraw. Battle is over.';
+                            '<br>Attacker chose to withdraw. Battle is over.';
                     }
                     return;
                 }
@@ -428,13 +428,13 @@
         
             if (blueArmyUnits.length === 0) {
                 document.getElementById('battleLog').innerHTML += 
-                    '\nRed Army Destroys Blue Army! Blue Army is annihilated.';
+                    '<br>Red Army Destroys Blue Army! Blue Army is annihilated.';
                 return;
             }
         
             if (redArmyUnits.length === 0) {
                 document.getElementById('battleLog').innerHTML += 
-                    '\nBlue Army Destroys Red Army! Red Army is annihilated.';
+                    '<br>Blue Army Destroys Red Army! Red Army is annihilated.';
                 return;
             }
         
@@ -458,7 +458,7 @@
                         startBattle();
                     } else {
                         document.getElementById('battleLog').innerHTML += 
-                            '\nAttacker chose to withdraw. Battle is over.';
+                            '<br>Attacker chose to withdraw. Battle is over.';
                     }
                 }
             }
@@ -466,7 +466,7 @@
 
         function simulateMeleePhase(redArmy, blueArmy) {
             const log = document.getElementById('battleLog');
-            log.innerHTML += '\nMelee Phase:\n';
+            log.innerHTML += '<br>Melee Phase:<br>';
         
             const redMeleeUnits = {
                 Daimyo: Array.from(redArmy).filter(u => u.dataset.type === 'Daimyo'),
@@ -494,13 +494,13 @@
                             return hit ? `hit (${roll})` : `miss (${roll})`;
                         });
                         
-                        meleeLog += `${army} ${type}: ${typeRolls.join(', ')}\n`;
+                        meleeLog += `${army} ${type}: ${typeRolls.join(', ')}<br>`;
                         const typeHits = typeRolls.filter(roll => roll.startsWith('hit')).length;
                         hits += typeHits;
                     }
                 });
         
-                meleeLog += `Total ${army} Melee Hits: ${hits}\n`;
+                meleeLog += `Total ${army} Melee Hits: ${hits}<br>`;
                 return { log: meleeLog, hits };
             };
         
@@ -510,7 +510,7 @@
         
             // Update battle log
             document.getElementById('battleLog').innerHTML += 
-                redResults.log + '\n' + blueResults.log;
+                redResults.log + '<br>' + blueResults.log;
         
             // Check for army destruction
             const redArmyUnits = document.querySelectorAll('#redArmyGrid .unit');
@@ -518,13 +518,13 @@
         
             if (blueResults.hits >= blueArmyUnits.length) {
                 document.getElementById('battleLog').innerHTML += 
-                    '\nRed Army Destroys Blue Army! Blue Army is annihilated.\n';
+                    '<br>Red Army Destroys Blue Army! Blue Army is annihilated.<br>';
                 return null;
             }
         
             if (redResults.hits >= redArmyUnits.length) {
                 document.getElementById('battleLog').innerHTML += 
-                    '\nBlue Army Destroys Red Army! Red Army is annihilated.\n';
+                    '<br>Blue Army Destroys Red Army! Red Army is annihilated.<br>';
                 return null;
             }
         
