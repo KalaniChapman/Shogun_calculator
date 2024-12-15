@@ -303,15 +303,64 @@
             currentPhase = 'Missile';
             currentBattleState = simulateMissilePhase(redArmy, blueArmy);
             
-            // Trigger casualty removal for blue army if there are casualties
+            // Proceed with blue army casualties first
             if (currentBattleState.blueCasualties > 0) {
                 prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
             } else {
-                // If no blue casualties, move to next phase
-                handleNextPhase();
+                // If no blue casualties, proceed to missile phase red army casualties
+                proceedToRedCasualties();
             }
         }
 
+        function proceedToRedCasualties() {
+            // If there are red army casualties from missile phase
+            if (currentBattleState.redCasualties > 0) {
+                prepareCasualtyRemoval('red', currentBattleState.redCasualties);
+            } else {
+                // Move to Melee Phase if no red casualties
+                proceedToMeleePhase();
+            }
+        }
+        
+        function proceedToMeleePhase() {
+            // Start Melee Phase
+            currentPhase = 'Melee';
+            currentBattleState = simulateMeleePhase(
+                document.querySelectorAll('#redArmyGrid .unit'),
+                document.querySelectorAll('#blueArmyGrid .unit')
+            );
+            
+            // Proceed with blue army casualties first
+            if (currentBattleState.blueCasualties > 0) {
+                prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
+            } else {
+                // If no blue casualties, proceed to red army casualties
+                proceedToRedMeleeCasualties();
+            }
+        }
+        
+        function proceedToRedMeleeCasualties() {
+            // If there are red army casualties from melee phase
+            if (currentBattleState.redCasualties > 0) {
+                prepareCasualtyRemoval('red', currentBattleState.redCasualties);
+            } else {
+                // If no casualties, prompt to continue or end battle
+                endCombatRound();
+            }
+        }
+        
+        function endCombatRound() {
+            const confirmContinue = confirm('Do you want to continue the battle?');
+            if (confirmContinue) {
+                startBattle(); // Starts a new round
+            } else {
+                document.getElementById('battleLog').innerHTML += 
+                    '<br>Battle has been concluded.';
+                currentBattleState = null;
+                currentPhase = null;
+            }
+        }
+        
         function highlightLog(logText) {
             // Create a temporary div to handle the highlighting
             const tempDiv = document.createElement('div');
@@ -466,8 +515,14 @@
             document.getElementById('removeCasualtiesBtn').style.display = 'none';
             currentArmyRemoving = null;
         
-            // Move to next phase or start next battle round
-            handleNextPhase();
+            // Determine next step based on current phase and army
+            if (currentArmyRemoving === 'blue') {
+                proceedToRedCasualties(); // Proceed to red army casualties
+            } else if (currentPhase === 'Missile') {
+                proceedToMeleePhase(); // Move to Melee Phase
+            } else if (currentPhase === 'Melee') {
+                endCombatRound(); // End the combat round
+            }
         }
 
         function handleNextPhase() {
