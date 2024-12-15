@@ -56,6 +56,9 @@
             padding: 10px;
             border: 1px solid #ccc;
         }
+        .hit-highlight {
+            background-color: rgba(255, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -278,6 +281,41 @@
             prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
         }
 
+        function highlightLog(logText) {
+            // Create a temporary div to handle the highlighting
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = logText;
+            
+            // Find and wrap "hit" with a span for highlighting
+            const textNodes = [];
+            
+            // Recursive function to find text nodes
+            function getTextNodes(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    textNodes.push(node);
+                } else {
+                    for (let child of node.childNodes) {
+                        getTextNodes(child);
+                    }
+                }
+            }
+            
+            getTextNodes(tempDiv);
+            
+            // Replace "hit" in text nodes
+            textNodes.forEach(textNode => {
+                const text = textNode.textContent;
+                if (text.includes('hit')) {
+                    const replacedText = text.replace(/hit/g, '<span class="hit-highlight">hit</span>');
+                    const tempSpan = document.createElement('span');
+                    tempSpan.innerHTML = replacedText;
+                    textNode.parentNode.replaceChild(tempSpan, textNode);
+                }
+            });
+            
+            return tempDiv.innerHTML;
+        }
+        
         function simulateMissilePhase(redArmy, blueArmy) {
             const log = document.getElementById('battleLog');
             log.innerHTML += '<br>Missile Phase:<br>';
@@ -319,10 +357,10 @@
             // Process missile phase for both armies
             const redResults = processUnitRolls('Red', redMissileUnits);
             const blueResults = processUnitRolls('Blue', blueMissileUnits);
-        
-            // Update battle log
+
+            // Update battle log with highlighting
             document.getElementById('battleLog').innerHTML += 
-                redResults.log + '<br>' + blueResults.log;
+                highlightLog(redResults.log + '<br>' + blueResults.log);
         
             // Check for army destruction
             const redArmyUnits = document.querySelectorAll('#redArmyGrid .unit');
@@ -356,10 +394,27 @@
         
             const instructions = document.getElementById('casualtyInstructions');
             const removeButton = document.getElementById('removeCasualtiesBtn');
+            const log = document.getElementById('battleLog');
             
             // Reset any previous selections
             const previousSelected = document.querySelectorAll('.selected-casualty');
             previousSelected.forEach(el => el.classList.remove('selected-casualty'));
+        
+            // Get remaining units for the army
+            const armyGrid = document.getElementById(`${armyColor}ArmyGrid`);
+            const remainingUnits = armyGrid.querySelectorAll('.unit');
+        
+            // If casualties exceed or equal remaining units, destroy the entire army
+            if (casualties >= remainingUnits.length) {
+                log.innerHTML += `<br>${armyColor.toUpperCase()} Army is completely destroyed!<br>`;
+                armyGrid.innerHTML = ''; // Remove all units
+                
+                // Determine the winner
+                const otherArmy = armyColor === 'blue' ? 'Red' : 'Blue';
+                log.innerHTML += `${otherArmy} Army is victorious!<br>`;
+                currentBattleState = null;
+                return;
+            }
         
             // Check if casualties are valid
             if (casualties === 0) {
@@ -396,7 +451,6 @@
             removeButton.style.display = 'block';
         
             // Prepare the army for casualty selection
-            const armyGrid = document.getElementById(`${armyColor}ArmyGrid`);
             const units = armyGrid.querySelectorAll('.unit');
             
             // Add click handler for casualty selection
@@ -504,10 +558,10 @@
             // Process melee phase for both armies
             const redResults = processUnitRolls('Red', redMeleeUnits);
             const blueResults = processUnitRolls('Blue', blueMeleeUnits);
-        
-            // Update battle log
+                
+            // Update battle log with highlighting
             document.getElementById('battleLog').innerHTML += 
-                redResults.log + '<br>' + blueResults.log;
+                highlightLog(redResults.log + '<br>' + blueResults.log);
         
             // Check for army destruction
             const redArmyUnits = document.querySelectorAll('#redArmyGrid .unit');
