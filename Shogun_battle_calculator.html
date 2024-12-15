@@ -121,6 +121,7 @@
 
         let currentBattleState = null;
         let combatRound = 0;
+        let currentPhase = null;
 
         // Initialize armies with Daimyo
         function initializeArmy(armyColor) {
@@ -278,9 +279,17 @@
             const log = document.getElementById('battleLog');
             log.innerHTML += (log.innerHTML ? '<br><br>' : '') + `<b>Combat Round ${combatRound}</b><br>`;
         
-            // Missile Phase (Archers and Gunners)
+            // Reset current battle state
+            currentBattleState = {
+                redArmy: redArmy,
+                blueArmy: blueArmy,
+                blueCasualties: 0,
+                redCasualties: 0
+            };
+        
+            // Start with Missile Phase
+            currentPhase = 'Missile';
             currentBattleState = simulateMissilePhase(redArmy, blueArmy);
-            prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
         }
 
         function highlightLog(logText) {
@@ -364,22 +373,6 @@
             document.getElementById('battleLog').innerHTML += 
                 highlightLog(redResults.log + '<br>' + blueResults.log);
         
-            // Check for army destruction
-            const redArmyUnits = document.querySelectorAll('#redArmyGrid .unit');
-            const blueArmyUnits = document.querySelectorAll('#blueArmyGrid .unit');
-        
-            if (blueResults.hits >= blueArmyUnits.length) {
-                document.getElementById('battleLog').innerHTML += 
-                    '<br>Red Army Destroys Blue Army! Blue Army is annihilated.<br>';
-                return null;
-            }
-        
-            if (redResults.hits >= redArmyUnits.length) {
-                document.getElementById('battleLog').innerHTML += 
-                    '<br>Blue Army Destroys Red Army! Red Army is annihilated.<br>';
-                return null;
-            }
-        
             return {
                 redArmy,
                 blueArmy,
@@ -415,38 +408,15 @@
                 const otherArmy = armyColor === 'blue' ? 'Red' : 'Blue';
                 log.innerHTML += `${otherArmy} Army is victorious!<br>`;
                 currentBattleState = null;
+                currentPhase = null;
                 return;
             }
         
             // Check if casualties are valid
             if (casualties === 0) {
-                // If no casualties, proceed to next phase
-                if (armyColor === 'blue') {
-                    currentBattleState = simulateMeleePhase(
-                        document.querySelectorAll('#redArmyGrid .unit'),
-                        document.querySelectorAll('#blueArmyGrid .unit')
-                    );
-                    
-                    if (currentBattleState) {
-                        const confirmContinue = confirm('Do you want to continue the battle?');
-                        if (confirmContinue) {
-                            startBattle();
-                        } else {
-                            document.getElementById('battleLog').innerHTML += 
-                                '<br>Attacker chose to withdraw. Battle is over.';
-                        }
-                    }
-                    return;
-                } else {
-                    const confirmContinue = confirm('Do you want to continue the battle?');
-                    if (confirmContinue) {
-                        startBattle();
-                    } else {
-                        document.getElementById('battleLog').innerHTML += 
-                            '<br>Attacker chose to withdraw. Battle is over.';
-                    }
-                    return;
-                }
+                // Move to next phase or end round
+                handleNextPhase();
+                return;
             }
         
             instructions.textContent = `${armyColor.toUpperCase()} Army: Select ${casualties} casualties to remove`;
@@ -458,7 +428,7 @@
             // Add click handler for casualty selection
             units.forEach(unit => {
                 unit.onclick = () => {
-                    if (document.querySelectorAll('.selected-casualty').length < currentBattleState[`${armyColor}Casualties`]) {
+                    if (document.querySelectorAll('.selected-casualty').length < casualties) {
                         unit.classList.toggle('selected-casualty');
                     }
                 };
@@ -489,34 +459,52 @@
             if (blueArmyUnits.length === 0) {
                 document.getElementById('battleLog').innerHTML += 
                     '<br>Red Army Destroys Blue Army! Blue Army is annihilated.';
+                currentBattleState = null;
+                currentPhase = null;
                 return;
             }
         
             if (redArmyUnits.length === 0) {
                 document.getElementById('battleLog').innerHTML += 
                     '<br>Blue Army Destroys Red Army! Red Army is annihilated.';
+                currentBattleState = null;
+                currentPhase = null;
                 return;
             }
         
-            // Proceed to next phase
-            if (currentBattleState.blueCasualties > 0) {
-                // Just finished blue army casualties, now do red army
-                currentBattleState.blueCasualties = 0; // Reset blue casualties
-                prepareCasualtyRemoval('red', currentBattleState.redCasualties);
-            } else {
-                // Completed red army casualties, proceed to melee phase
+            // Move to next phase
+            handleNextPhase();
+        }
+
+        function handleNextPhase() {
+            // If just finished missile phase, start melee phase
+            if (currentPhase === 'Missile') {
+                currentPhase = 'Melee';
                 currentBattleState = simulateMeleePhase(
                     document.querySelectorAll('#redArmyGrid .unit'),
                     document.querySelectorAll('#blueArmyGrid .unit')
                 );
-        
+                
+                // Prepare blue army casualties
                 if (currentBattleState) {
-                    // Prompt for casualties
                     prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
+                }
+            } 
+            // If just finished melee phase or blue casualties
+            else {
+                // Confirm to continue to next round or end
+                const confirmContinue = confirm('Do you want to continue the battle?');
+                if (confirmContinue) {
+                    startBattle(); // Starts a new round
+                } else {
+                    document.getElementById('battleLog').innerHTML += 
+                        '<br>Battle has been concluded.';
+                    currentBattleState = null;
+                    currentPhase = null;
                 }
             }
         }
-
+        
         function simulateMeleePhase(redArmy, blueArmy) {
             const log = document.getElementById('battleLog');
             log.innerHTML += '<br><u>Melee Phase</u>:<br>';
@@ -564,23 +552,7 @@
             // Update battle log with highlighting
             document.getElementById('battleLog').innerHTML += 
                 highlightLog(redResults.log + '<br>' + blueResults.log);
-        
-            // Check for army destruction
-            const redArmyUnits = document.querySelectorAll('#redArmyGrid .unit');
-            const blueArmyUnits = document.querySelectorAll('#blueArmyGrid .unit');
-        
-            if (blueResults.hits >= blueArmyUnits.length) {
-                document.getElementById('battleLog').innerHTML += 
-                    '<br>Red Army Destroys Blue Army! Blue Army is annihilated.<br>';
-                return null;
-            }
-        
-            if (redResults.hits >= redArmyUnits.length) {
-                document.getElementById('battleLog').innerHTML += 
-                    '<br>Blue Army Destroys Red Army! Red Army is annihilated.<br>';
-                return null;
-            }
-        
+     
             return {
                 redArmy,
                 blueArmy,
