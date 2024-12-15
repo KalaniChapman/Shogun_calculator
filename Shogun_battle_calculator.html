@@ -100,7 +100,9 @@
         </div>
 
         <div class="combat-controls">
-            <div id="battleLog">Battle Log</div>
+            <div id="battleLog">
+                <h3>Battle Log</h3>
+            </div>
             <div id="casualtyRemoval">
                 <h3 id="casualtyInstructions"></h3>
                 <button id="removeCasualtiesBtn" onclick="removeCasualties()" style="display:none;">Remove Casualties</button>
@@ -274,7 +276,7 @@
         
             // Append to log instead of replacing
             const log = document.getElementById('battleLog');
-            log.innerHTML += (log.innerHTML ? '<br><br>' : '') + `Combat Round ${combatRound}<br>`;
+            log.innerHTML += (log.innerHTML ? '<br><br>' : '') + `<b>Combat Round ${combatRound}</b><br>`;
         
             // Missile Phase (Archers and Gunners)
             currentBattleState = simulateMissilePhase(redArmy, blueArmy);
@@ -318,7 +320,7 @@
         
         function simulateMissilePhase(redArmy, blueArmy) {
             const log = document.getElementById('battleLog');
-            log.innerHTML += '<br>Missile Phase:<br>';
+            log.innerHTML += '<br><u>Missile Phase</u>:<br>';
         
             const redMissileUnits = {
                 Archers: Array.from(redArmy).filter(u => u.dataset.type === 'Archers'),
@@ -517,7 +519,7 @@
 
         function simulateMeleePhase(redArmy, blueArmy) {
             const log = document.getElementById('battleLog');
-            log.innerHTML += '<br>Melee Phase:<br>';
+            log.innerHTML += '<br><u>Melee Phase</u>:<br>';
         
             const redMeleeUnits = {
                 Daimyo: Array.from(redArmy).filter(u => u.dataset.type === 'Daimyo'),
