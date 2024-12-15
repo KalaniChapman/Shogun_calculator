@@ -312,13 +312,18 @@
             }
         }
 
-        function proceedToRedCasualties() {
-            // If there are red army casualties from missile phase
+        function proceedToRedMeleeCasualties() {
+            // If there are red army casualties from melee phase
             if (currentBattleState.redCasualties > 0) {
                 prepareCasualtyRemoval('red', currentBattleState.redCasualties);
             } else {
-                // Move to Melee Phase if no red casualties
-                proceedToMeleePhase();
+                // If no casualties for red army, but blue army scored hits, process blue casualties
+                if (currentBattleState.blueCasualties > 0) {
+                    prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
+                } else {
+                    // If no casualties for either army, prompt to continue or end battle
+                    endCombatRound();
+                }
             }
         }
         
@@ -611,7 +616,7 @@
             // Update battle log with highlighting
             document.getElementById('battleLog').innerHTML += 
                 highlightLog(redResults.log + '<br>' + blueResults.log);
-     
+         
             return {
                 redArmy,
                 blueArmy,
