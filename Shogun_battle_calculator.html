@@ -293,8 +293,8 @@
         
             // Reset current battle state
             currentBattleState = {
-                redArmy: redArmy,
-                blueArmy: blueArmy,
+                redArmy,
+                blueArmy,
                 blueCasualties: 0,
                 redCasualties: 0
             };
@@ -307,7 +307,7 @@
             if (currentBattleState.blueCasualties > 0) {
                 prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
             } else {
-                // If no blue casualties, proceed to missile phase red army casualties
+                // If no blue casualties, proceed to red army casualties
                 proceedToRedCasualties();
             }
         }
@@ -437,7 +437,7 @@
             // Process missile phase for both armies
             const redResults = processUnitRolls('Red', redMissileUnits);
             const blueResults = processUnitRolls('Blue', blueMissileUnits);
-
+        
             // Update battle log with highlighting
             document.getElementById('battleLog').innerHTML += 
                 highlightLog(redResults.log + '<br>' + blueResults.log);
