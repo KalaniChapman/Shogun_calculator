@@ -483,8 +483,24 @@
         
             // Check if casualties are valid
             if (casualties === 0) {
-                // Move to next phase or end round
-                handleNextPhase();
+                // Proceed to next phase based on current phase
+                if (currentPhase === 'Missile') {
+                    // If just finished missile phase for blue, proceed to red casualties
+                    if (armyColor === 'blue') {
+                        proceedToRedCasualties();
+                    } else {
+                        // If just finished red casualties, move to melee phase
+                        proceedToMeleePhase();
+                    }
+                } else if (currentPhase === 'Melee') {
+                    // If just finished melee phase for blue, proceed to red casualties
+                    if (armyColor === 'blue') {
+                        proceedToRedMeleeCasualties();
+                    } else {
+                        // If just finished red casualties, end the combat round
+                        endCombatRound();
+                    }
+                }
                 return;
             }
         
