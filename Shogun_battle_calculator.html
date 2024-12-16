@@ -295,8 +295,13 @@
             currentPhase = 'Missile';
             currentBattleState = simulateMissilePhase(redArmy, blueArmy);
             
-            // Process casualties for both armies
-            processPhaseCasualties(currentBattleState);
+            // Always prepare blue army casualties first
+            if (currentBattleState.blueCasualties > 0) {
+                prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
+            } else {
+                // If no blue casualties, immediately proceed to red casualties
+                prepareCasualtyRemoval('red', currentBattleState.redCasualties);
+            }
         }
 
         function processPhaseCasualties(battleState) {
@@ -362,12 +367,12 @@
                 document.querySelectorAll('#blueArmyGrid .unit')
             );
             
-            // Proceed with blue army casualties first
+            // Always prepare blue army casualties first
             if (currentBattleState.blueCasualties > 0) {
                 prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
             } else {
-                // If no blue casualties, proceed to red army casualties
-                proceedToRedMeleeCasualties();
+                // If no blue casualties, immediately proceed to red casualties
+                prepareCasualtyRemoval('red', currentBattleState.redCasualties);
             }
         }
       
@@ -549,23 +554,26 @@
             // Remove selected casualties
             selectedCasualties.forEach(casualty => casualty.remove());
         
-            // Hide remove button and reset current army removing
+            // Hide remove button
             document.getElementById('removeCasualtiesBtn').style.display = 'none';
-            currentArmyRemoving = null;
         
-            // Check if there are more casualties to process
-            const remainingArmies = currentBattleState.blueCasualties > 0 ? 'blue' : 
-                                     currentBattleState.redCasualties > 0 ? 'red' : null;
-        
-            if (remainingArmies === 'blue') {
-                // If blue casualties remain, proceed to blue casualties
-                prepareCasualtyRemoval('blue', currentBattleState.blueCasualties);
-            } else if (remainingArmies === 'red') {
-                // If red casualties remain, proceed to red casualties
-                prepareCasualtyRemoval('red', currentBattleState.redCasualties);
-            } else {
-                // No more casualties, proceed to next phase
-                proceedToNextPhase();
+            // Determine next steps based on current phase and army removing
+            if (currentPhase === 'Missile') {
+                if (currentArmyRemoving === 'blue') {
+                    // After blue casualties, always process red casualties
+                    prepareCasualtyRemoval('red', currentBattleState.redCasualties);
+                } else if (currentArmyRemoving === 'red') {
+                    // After red casualties in missile phase, move to melee phase
+                    proceedToMeleePhase();
+                }
+            } else if (currentPhase === 'Melee') {
+                if (currentArmyRemoving === 'blue') {
+                    // After blue casualties, process red casualties
+                    prepareCasualtyRemoval('red', currentBattleState.redCasualties);
+                } else if (currentArmyRemoving === 'red') {
+                    // After red casualties in melee phase, end the round
+                    endCombatRound();
+                }
             }
         }
 
