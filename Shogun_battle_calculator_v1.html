@@ -63,19 +63,22 @@
             background-color: rgba(0, 0, 255, 0.3);
             border: 1px solid blue;
         }
-        #battleLog {
+        #battleLogContainer {
             flex-grow: 1;
             margin: 10px;
             padding: 10px;
             border: 1px solid #ccc;
             height: calc(100vh - 20px);
-            column-count: 2;
-            column-gap: 20px;
             overflow: auto;
         }
-        #battleLog h3 {
-            column-span: all;
-            text-align: center;
+        #battleLog {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 20px;
+            height: 100%;
+        }
+        #battleLogColumn1, #battleLogColumn2 {
+            overflow: hidden;
         }
         .battle-controls, .combat-controls {
             margin: 10px;
@@ -137,8 +140,13 @@
             </div>
         </div>
 
-        <div id="battleLog">
-            <h3>Battle Log</h3>
+        <div id="battleLogContainer">
+            <div id="battleLog">
+                <div id="battleLogColumn1">
+                    <h3>Battle Log</h3>
+                </div>
+                <div id="battleLogColumn2"></div>
+            </div>
         </div>
     </div>
 
@@ -419,7 +427,46 @@
                 currentPhase = null;
             }
         }
+
+        function updateBattleLog(newContent) {
+            const column1 = document.getElementById('battleLogColumn1');
+            const column2 = document.getElementById('battleLogColumn2');
+            
+            // Create a temporary div to measure height
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = newContent;
+            tempDiv.style.visibility = 'hidden';
+            tempDiv.style.position = 'absolute';
+            document.body.appendChild(tempDiv);
+            
+            // Check if column1 can fit the new content
+            column1.innerHTML += newContent;
+            
+            // If column1 exceeds its height, move content to column2
+            const column1Height = column1.scrollHeight;
+            const containerHeight = document.getElementById('battleLogContainer').clientHeight;
+            
+            if (column1Height > containerHeight) {
+                // Remove the last added content
+                column1.innerHTML = column1.innerHTML.replace(newContent, '');
+                
+                // Add to column2
+                column2.innerHTML += newContent;
+            }
+            
+            // Remove temporary div
+            document.body.removeChild(tempDiv);
+            
+            // Scroll to bottom of container
+            const container = document.getElementById('battleLogContainer');
+            container.scrollTop = container.scrollHeight;
+        }
         
+        // Override the existing log update method in the original script
+        const originalLog = document.getElementById('battleLog');
+        originalLog.innerHTML = '';  // Clear original log
+        
+        // Modify the highlightLog function to work with the new structure
         function highlightLog(logText) {
             // Create a temporary div to handle the highlighting
             const tempDiv = document.createElement('div');
