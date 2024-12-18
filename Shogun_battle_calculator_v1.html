@@ -8,22 +8,21 @@
             display: flex;
             height: 100vh;
         }
-        .army-section {
-            width: 800px;
+        .army-setup-wrapper {
             display: flex;
             flex-direction: column;
-            padding: 10px;
+            width: 800px;
         }
-        .battle-controls {
-            text-align: center;
-            margin: 10px;
-            padding: 10px;
+        .army-setup-row {
+            display: flex;
+            justify-content: space-between;
         }
         .army-setup {
             display: inline-block;
             margin: 10px;
             padding: 10px;
             border: 2px solid;
+            width: 350px;
         }
         .army-grid {
             display: grid;
@@ -67,10 +66,10 @@
             overflow-y: auto;
             height: calc(100vh - 20px);
         }
-        .combat-controls {
+        .battle-controls, .combat-controls {
+            text-align: center;
             margin: 10px;
             padding: 10px;
-            border: 1px solid #ccc;
         }
         .hit-highlight {
             background-color: rgba(255, 0, 0, 0.2);
@@ -79,36 +78,38 @@
 </head>
 <body>
     <div class="battle-container">
-        <div class="army-section">
-            <div id="redArmySetup" class="army-setup red-army">
-                <h2>Attacking Army</h2>
-                <div id="redArmyGrid" class="army-grid">
-                    <div class="army-row" row="0"></div>
-                    <div class="army-row" row="1"></div>
-                    <div class="army-row" row="2"></div>
+        <div class="army-setup-wrapper">
+            <div class="army-setup-row">
+                <div id="redArmySetup" class="army-setup red-army">
+                    <h2>Attacking Army</h2>
+                    <div id="redArmyGrid" class="army-grid">
+                        <div class="army-row" row="0"></div>
+                        <div class="army-row" row="1"></div>
+                        <div class="army-row" row="2"></div>
+                    </div>
+                    <div id="redUnitTypes" class="unit-types">
+                        <button onclick="addUnit('red', 'Samurai')">Samurai</button>
+                        <button onclick="addUnit('red', 'Archers')">Archers</button>
+                        <button onclick="addUnit('red', 'Gunners')">Gunners</button>
+                        <button onclick="addUnit('red', 'Ashigaru')">Ashigaru</button>
+                        <button onclick="resetArmy('red')">Reset Army</button>
+                    </div>
                 </div>
-                <div id="redUnitTypes" class="unit-types">
-                    <button onclick="addUnit('red', 'Samurai')">Samurai</button>
-                    <button onclick="addUnit('red', 'Archers')">Archers</button>
-                    <button onclick="addUnit('red', 'Gunners')">Gunners</button>
-                    <button onclick="addUnit('red', 'Ashigaru')">Ashigaru</button>
-                    <button onclick="resetArmy('red')">Reset Army</button>
-                </div>
-            </div>
 
-            <div id="blueArmySetup" class="army-setup blue-army">
-                <h2>Defending Army</h2>
-                <div id="blueArmyGrid" class="army-grid">
-                    <div class="army-row" row="0"></div>
-                    <div class="army-row" row="1"></div>
-                    <div class="army-row" row="2"></div>
-                </div>
-                <div id="blueUnitTypes" class="unit-types">
-                    <button onclick="addUnit('blue', 'Samurai')">Samurai</button>
-                    <button onclick="addUnit('blue', 'Archers')">Archers</button>
-                    <button onclick="addUnit('blue', 'Gunners')">Gunners</button>
-                    <button onclick="addUnit('blue', 'Ashigaru')">Ashigaru</button>
-                    <button onclick="resetArmy('blue')">Reset Army</button>
+                <div id="blueArmySetup" class="army-setup blue-army">
+                    <h2>Defending Army</h2>
+                    <div id="blueArmyGrid" class="army-grid">
+                        <div class="army-row" row="0"></div>
+                        <div class="army-row" row="1"></div>
+                        <div class="army-row" row="2"></div>
+                    </div>
+                    <div id="blueUnitTypes" class="unit-types">
+                        <button onclick="addUnit('blue', 'Samurai')">Samurai</button>
+                        <button onclick="addUnit('blue', 'Archers')">Archers</button>
+                        <button onclick="addUnit('blue', 'Gunners')">Gunners</button>
+                        <button onclick="addUnit('blue', 'Ashigaru')">Ashigaru</button>
+                        <button onclick="resetArmy('blue')">Reset Army</button>
+                    </div>
                 </div>
             </div>
 
