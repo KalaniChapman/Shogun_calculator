@@ -277,8 +277,12 @@
         function removeUnit(unitElement) {
             // If currently selecting casualties, handle selection
             if (currentArmyRemoving) {
-                // Toggle the selected-casualty class to allow selection/deselection
-                unitElement.classList.toggle('selected-casualty');
+                // Check if the unit belongs to the correct army
+                const unitArmy = unitElement.closest('.army-setup').id.startsWith('red') ? 'red' : 'blue';
+                if (unitArmy === currentArmyRemoving) {
+                    // Toggle the selected-casualty class to allow selection/deselection
+                    unitElement.classList.toggle('selected-casualty');
+                }
             } else {
                 // Normal unit removal during army setup
                 unitElement.remove();
@@ -565,9 +569,6 @@
         
             instructions.textContent = `${armyColor.toUpperCase()} Army: Select ${casualties} casualties to remove`;
             removeButton.style.display = 'block';
-        
-            // Prepare the army for casualty selection
-            const units = armyGrid.querySelectorAll('.unit');
         }
 
         function removeCasualties() {
