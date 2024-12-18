@@ -280,10 +280,25 @@
                 // Check if the unit belongs to the correct army
                 const unitArmy = unitElement.closest('.army-setup').id.startsWith('red') ? 'red' : 'blue';
                 if (unitArmy === currentArmyRemoving) {
-                    // Toggle the selected-casualty class to allow selection/deselection
+                    // Get count of non-Daimyo units available
+                    const armyGrid = document.getElementById(`${unitArmy}ArmyGrid`);
+                    const nonDaimyoUnits = Array.from(armyGrid.querySelectorAll('.unit')).filter(unit => 
+                        unit.dataset.type !== 'Daimyo' && !unit.classList.contains('selected-casualty')
+                    ).length;
+        
+                    // Only allow Daimyo selection if no other units are available
+                    if (unitElement.dataset.type === 'Daimyo' && nonDaimyoUnits > 0) {
+                        return; // Prevent Daimyo selection if other units exist
+                    }
+        
+                    // Toggle the selected-casualty class
                     unitElement.classList.toggle('selected-casualty');
                 }
             } else {
+                // During army setup, prevent Daimyo removal
+                if (unitElement.dataset.type === 'Daimyo') {
+                    return; // Prevent Daimyo removal
+                }
                 // Normal unit removal during army setup
                 unitElement.remove();
             }
@@ -527,8 +542,9 @@
             // Get remaining units for the army
             const armyGrid = document.getElementById(`${armyColor}ArmyGrid`);
             const remainingUnits = armyGrid.querySelectorAll('.unit');
+            const nonDaimyoUnits = Array.from(remainingUnits).filter(unit => unit.dataset.type !== 'Daimyo').length;
         
-            // If casualties exceed or equal remaining units, destroy the entire army
+            // If casualties exceed or equal remaining units (including Daimyo), destroy the entire army
             if (casualties >= remainingUnits.length) {
                 log.innerHTML += `<br>${armyColor.toUpperCase()} Army is completely destroyed!<br>`;
                 armyGrid.innerHTML = ''; // Remove all units
@@ -541,23 +557,25 @@
                 return;
             }
         
+            // If casualties equals number of non-Daimyo units, automatically select all non-Daimyo units
+            if (casualties === nonDaimyoUnits) {
+                const nonDaimyoElements = Array.from(remainingUnits).filter(unit => unit.dataset.type !== 'Daimyo');
+                nonDaimyoElements.forEach(unit => unit.classList.add('selected-casualty'));
+            }
+        
             // Check if casualties are valid
             if (casualties === 0) {
                 // Proceed to next phase based on current phase
                 if (currentPhase === 'Missile') {
-                    // If just finished missile phase for blue, proceed to red casualties
                     if (armyColor === 'blue') {
                         proceedToRedCasualties();
                     } else {
-                        // If just finished red casualties, move to melee phase
                         proceedToMeleePhase();
                     }
                 } else if (currentPhase === 'Melee') {
-                    // If just finished melee phase for blue, proceed to red casualties
                     if (armyColor === 'blue') {
                         proceedToRedMeleeCasualties();
                     } else {
-                        // If just finished red casualties, end the combat round
                         endCombatRound();
                     }
                 }
@@ -567,7 +585,11 @@
             // Set current army removing
             currentArmyRemoving = armyColor;
         
-            instructions.textContent = `${armyColor.toUpperCase()} Army: Select ${casualties} casualties to remove`;
+            let instructionText = `${armyColor.toUpperCase()} Army: Select ${casualties} casualties to remove`;
+            if (nonDaimyoUnits > 0) {
+                instructionText += " (Daimyo must be the last unit remaining)";
+            }
+            instructions.textContent = instructionText;
             removeButton.style.display = 'block';
         }
 
