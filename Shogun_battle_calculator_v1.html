@@ -277,12 +277,8 @@
         function removeUnit(unitElement) {
             // If currently selecting casualties, handle selection
             if (currentArmyRemoving) {
-                const selectedCasualties = document.querySelectorAll('.selected-casualty');
-                
-                // If removing specific casualties during battle
-                if (selectedCasualties.length < currentBattleState[`${currentArmyRemoving}Casualties`]) {
-                    unitElement.classList.toggle('selected-casualty');
-                }
+                // Toggle the selected-casualty class to allow selection/deselection
+                unitElement.classList.toggle('selected-casualty');
             } else {
                 // Normal unit removal during army setup
                 unitElement.remove();
