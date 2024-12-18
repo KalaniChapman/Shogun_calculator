@@ -4,8 +4,18 @@
     <meta charset="UTF-8">
     <title>Samurai Swords Battle Simulator</title>
     <style>
+        .battle-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .armies-section {
+            display: flex;
+            flex-direction: column;
+            width: 70%;
+            padding: 10px;
+        }
         .army-setup {
-            display: inline-block;
             margin: 10px;
             padding: 10px;
             border: 2px solid;
@@ -45,11 +55,12 @@
             border: 1px solid blue;
         }
         #battleLog {
-            margin: 20px;
+            width: 30%;
+            margin: 10px;
             padding: 10px;
             border: 1px solid #ccc;
-            height: 200px;
-            overflow-y: scroll;
+            overflow-y: auto;
+            height: calc(100vh - 20px);
         }
         .combat-controls {
             margin: 10px;
@@ -63,50 +74,53 @@
 </head>
 <body>
     <div class="battle-container">
-        <div id="redArmySetup" class="army-setup red-army">
-            <h2>Attacking Army</h2>
-            <div id="redArmyGrid" class="army-grid">
-                <div class="army-row" row="0"></div>
-                <div class="army-row" row="1"></div>
-                <div class="army-row" row="2"></div>
+        <div class="armies-section">
+            <div id="redArmySetup" class="army-setup red-army">
+                <h2>Attacking Army</h2>
+                <div id="redArmyGrid" class="army-grid">
+                    <div class="army-row" row="0"></div>
+                    <div class="army-row" row="1"></div>
+                    <div class="army-row" row="2"></div>
+                </div>
+                <div id="redUnitTypes" class="unit-types">
+                    <button onclick="addUnit('red', 'Samurai')">Samurai</button>
+                    <button onclick="addUnit('red', 'Archers')">Archers</button>
+                    <button onclick="addUnit('red', 'Gunners')">Gunners</button>
+                    <button onclick="addUnit('red', 'Ashigaru')">Ashigaru</button>
+                    <button onclick="resetArmy('red')">Reset Army</button>
+                </div>
             </div>
-            <div id="redUnitTypes" class="unit-types">
-                <button onclick="addUnit('red', 'Samurai')">Samurai</button>
-                <button onclick="addUnit('red', 'Archers')">Archers</button>
-                <button onclick="addUnit('red', 'Gunners')">Gunners</button>
-                <button onclick="addUnit('red', 'Ashigaru')">Ashigaru</button>
-                <button onclick="resetArmy('red')">Reset Army</button>
+
+            <div id="blueArmySetup" class="army-setup blue-army">
+                <h2>Defending Army</h2>
+                <div id="blueArmyGrid" class="army-grid">
+                    <div class="army-row" row="0"></div>
+                    <div class="army-row" row="1"></div>
+                    <div class="army-row" row="2"></div>
+                </div>
+                <div id="blueUnitTypes" class="unit-types">
+                    <button onclick="addUnit('blue', 'Samurai')">Samurai</button>
+                    <button onclick="addUnit('blue', 'Archers')">Archers</button>
+                    <button onclick="addUnit('blue', 'Gunners')">Gunners</button>
+                    <button onclick="addUnit('blue', 'Ashigaru')">Ashigaru</button>
+                    <button onclick="resetArmy('blue')">Reset Army</button>
+                </div>
+            </div>
+
+            <div class="battle-controls">
+                <button onclick="startBattle()">Start Battle</button>
+            </div>
+
+            <div class="combat-controls">
+                <div id="casualtyRemoval">
+                    <h3 id="casualtyInstructions"></h3>
+                    <button id="removeCasualtiesBtn" onclick="removeCasualties()" style="display:none;">Remove Casualties</button>
+                </div>
             </div>
         </div>
 
-        <div id="blueArmySetup" class="army-setup blue-army">
-            <h2>Defending Army</h2>
-            <div id="blueArmyGrid" class="army-grid">
-                <div class="army-row" row="0"></div>
-                <div class="army-row" row="1"></div>
-                <div class="army-row" row="2"></div>
-            </div>
-            <div id="blueUnitTypes" class="unit-types">
-                <button onclick="addUnit('blue', 'Samurai')">Samurai</button>
-                <button onclick="addUnit('blue', 'Archers')">Archers</button>
-                <button onclick="addUnit('blue', 'Gunners')">Gunners</button>
-                <button onclick="addUnit('blue', 'Ashigaru')">Ashigaru</button>
-                <button onclick="resetArmy('blue')">Reset Army</button>
-            </div>
-        </div>
-
-        <div class="battle-controls">
-            <button onclick="startBattle()">Start Battle</button>
-        </div>
-
-        <div class="combat-controls">
-            <div id="battleLog">
-                <h3>Battle Log</h3>
-            </div>
-            <div id="casualtyRemoval">
-                <h3 id="casualtyInstructions"></h3>
-                <button id="removeCasualtiesBtn" onclick="removeCasualties()" style="display:none;">Remove Casualties</button>
-            </div>
+        <div id="battleLog">
+            <h3>Battle Log</h3>
         </div>
     </div>
 
