@@ -17,6 +17,11 @@
             display: flex;
             justify-content: space-between;
         }
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
         .army-setup {
             display: inline-block;
             margin: 10px;
@@ -63,11 +68,16 @@
             margin: 10px;
             padding: 10px;
             border: 1px solid #ccc;
-            overflow-y: auto;
             height: calc(100vh - 20px);
+            column-count: 2;
+            column-gap: 20px;
+            overflow: auto;
+        }
+        #battleLog h3 {
+            column-span: all;
+            text-align: center;
         }
         .battle-controls, .combat-controls {
-            text-align: center;
             margin: 10px;
             padding: 10px;
         }
@@ -113,14 +123,16 @@
                 </div>
             </div>
 
-            <div class="battle-controls">
-                <button onclick="startBattle()">Start Battle</button>
-            </div>
+            <div class="controls-row">
+                <div class="battle-controls">
+                    <button onclick="startBattle()">Start Battle</button>
+                </div>
 
-            <div class="combat-controls">
-                <div id="casualtyRemoval">
-                    <h3 id="casualtyInstructions"></h3>
-                    <button id="removeCasualtiesBtn" onclick="removeCasualties()" style="display:none;">Remove Casualties</button>
+                <div class="combat-controls">
+                    <div id="casualtyRemoval">
+                        <h3 id="casualtyInstructions"></h3>
+                        <button id="removeCasualtiesBtn" onclick="removeCasualties()" style="display:none;">Remove Casualties</button>
+                    </div>
                 </div>
             </div>
         </div>
