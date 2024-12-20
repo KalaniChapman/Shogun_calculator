@@ -332,9 +332,9 @@
                 return;
             }
         
-            // Disable start battle button and unit controls
+            // Disable start battle button but keep the container
             const startButton = document.querySelector('.battle-controls button');
-            startButton.disabled = true;
+            startButton.style.display = 'none';  // Changed from disabled = true
             
             // Hide all unit control buttons
             document.querySelectorAll('#redUnitTypes button, #blueUnitTypes button').forEach(button => {
