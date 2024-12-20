@@ -558,19 +558,39 @@
             const previousSelected = document.querySelectorAll('.selected-casualty');
             previousSelected.forEach(el => el.classList.remove('selected-casualty'));
         
-            // Get remaining units for the army
-            const armyGrid = document.getElementById(`${armyColor}ArmyGrid`);
-            const remainingUnits = armyGrid.querySelectorAll('.unit');
+            // Get remaining units for both armies
+            const redArmyGrid = document.getElementById('redArmyGrid');
+            const blueArmyGrid = document.getElementById('blueArmyGrid');
+            const redUnits = redArmyGrid.querySelectorAll('.unit');
+            const blueUnits = blueArmyGrid.querySelectorAll('.unit');
+        
+            // Check if current casualties would destroy the current army
+            const currentArmyGrid = document.getElementById(`${armyColor}ArmyGrid`);
+            const remainingUnits = currentArmyGrid.querySelectorAll('.unit');
             const nonDaimyoUnits = Array.from(remainingUnits).filter(unit => unit.dataset.type !== 'Daimyo').length;
         
-            // If casualties exceed or equal remaining units (including Daimyo), destroy the entire army
+            // If casualties would destroy the current army...
             if (casualties >= remainingUnits.length) {
-                log.innerHTML += `<br>${armyColor.toUpperCase()} Army is completely destroyed!<br>`;
-                armyGrid.innerHTML = ''; // Remove all units
-                
-                // Determine the winner
-                const otherArmy = armyColor === 'blue' ? 'Red' : 'Blue';
-                log.innerHTML += `${otherArmy} Army is victorious!<br>`;
+                // Check if both armies would be destroyed in this phase
+                const otherArmy = armyColor === 'blue' ? 'red' : 'blue';
+                const otherArmyUnits = document.getElementById(`${otherArmy}ArmyGrid`).querySelectorAll('.unit');
+                const otherArmyCasualties = currentBattleState[`${otherArmy}Casualties`];
+        
+                if (otherArmyCasualties >= otherArmyUnits.length) {
+                    // Both armies are destroyed
+                    log.innerHTML += '<br>The armies have annihilated each other!!<br>';
+                    redArmyGrid.innerHTML = '';
+                    blueArmyGrid.innerHTML = '';
+                } else {
+                    // Only current army is destroyed
+                    log.innerHTML += `<br>${armyColor.toUpperCase()} Army is completely destroyed!<br>`;
+                    currentArmyGrid.innerHTML = '';
+                    
+                    // Determine the winner
+                    const victorArmy = armyColor === 'blue' ? 'Red' : 'Blue';
+                    log.innerHTML += `${victorArmy} Army is victorious!<br>`;
+                }
+        
                 log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br>';
                 
                 // Make sure battle controls container exists and is visible
