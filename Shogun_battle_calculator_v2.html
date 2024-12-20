@@ -441,7 +441,7 @@
                 log.innerHTML += '<br>Battle has been concluded.<br>';
                 log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br>';
                 
-                // Add export log button only at the end of the battle
+                // Add export log button
                 if (!document.getElementById('exportLogButton')) {
                     const exportButton = document.createElement('button');
                     exportButton.id = 'exportLogButton';
@@ -571,20 +571,29 @@
                 // Determine the winner
                 const otherArmy = armyColor === 'blue' ? 'Red' : 'Blue';
                 log.innerHTML += `${otherArmy} Army is victorious!<br>`;
+                log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br>';
+                
+                // Add export log button
+                if (!document.getElementById('exportLogButton')) {
+                    const exportButton = document.createElement('button');
+                    exportButton.id = 'exportLogButton';
+                    exportButton.textContent = 'Export Battle Log';
+                    exportButton.onclick = exportBattleLog;
+                    document.querySelector('.battle-controls').appendChild(exportButton);
+                }
+                
                 currentBattleState = null;
                 currentPhase = null;
                 return;
             }
         
-            // If casualties equals number of non-Daimyo units, automatically select all non-Daimyo units
+            // Rest of the function remains unchanged...
             if (casualties === nonDaimyoUnits) {
                 const nonDaimyoElements = Array.from(remainingUnits).filter(unit => unit.dataset.type !== 'Daimyo');
                 nonDaimyoElements.forEach(unit => unit.classList.add('selected-casualty'));
             }
         
-            // Check if casualties are valid
             if (casualties === 0) {
-                // Proceed to next phase based on current phase
                 if (currentPhase === 'Missile') {
                     if (armyColor === 'blue') {
                         proceedToRedCasualties();
@@ -600,6 +609,16 @@
                 }
                 return;
             }
+        
+            currentArmyRemoving = armyColor;
+        
+            let instructionText = `${armyColor.toUpperCase()} Army: Select ${casualties} casualties to remove`;
+            if (nonDaimyoUnits > 0) {
+                instructionText += " (Daimyo must be the last unit remaining)";
+            }
+            instructions.textContent = instructionText;
+            removeButton.style.display = 'block';
+        }
         
             // Set current army removing
             currentArmyRemoving = armyColor;
