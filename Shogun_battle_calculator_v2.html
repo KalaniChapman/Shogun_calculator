@@ -442,8 +442,9 @@
                 log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br>';
                 
                 // Add export log button only at the end of the battle
-                if (!document.querySelector('.battle-controls button[onclick="exportBattleLog"]')) {
+                if (!document.getElementById('exportLogButton')) {
                     const exportButton = document.createElement('button');
+                    exportButton.id = 'exportLogButton';
                     exportButton.textContent = 'Export Battle Log';
                     exportButton.onclick = exportBattleLog;
                     document.querySelector('.battle-controls').appendChild(exportButton);
