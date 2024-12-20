@@ -640,14 +640,19 @@
                 return;
             }
         
-            // Set current army removing
+            // Reset any previous selections and set up instructions
+            const previousSelected = document.querySelectorAll('.selected-casualty');
+            previousSelected.forEach(el => el.classList.remove('selected-casualty'));
+        
             currentArmyRemoving = armyColor;
         
-            let instructionText = `${armyColor.toUpperCase()} Army: Select ${casualties} casualties to remove`;
+            const instructions = document.getElementById('casualtyInstructions');
+            let instructionText = `<div style="font-size: 1.2em; margin-bottom: 8px;"><b>${currentPhase} Phase Casualties</b></div>`;
+            instructionText += `${armyColor.toUpperCase()} Army: Select ${casualties} casualties to remove`;
             if (nonDaimyoUnits > 0) {
                 instructionText += " (Daimyo must be the last unit remaining)";
             }
-            instructions.textContent = instructionText;
+            instructions.innerHTML = instructionText;  // Changed from textContent to innerHTML to handle the styling
             removeButton.style.display = 'block';
         }
 
