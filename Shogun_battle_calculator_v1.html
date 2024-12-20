@@ -144,6 +144,20 @@
     </div>
 
     <script>
+        let customNames = null;
+        const defeatMessages = [
+            "is no more.",
+            "no longer exists.",
+            "has fertilized this land well with their blood.",
+            "got wasted.",
+            "has been utterly destroyed.",
+            "is now just a memory.",
+            "has met their ancestors.",
+            "will be remembered in song... maybe.",
+            "should have stayed home today.",
+            "has been deleted from history."
+        ];
+        
         const UNIT_HIT_RULES = {
             'Daimyo': { hits: 6, dice: 12 },     // hits on 1-6 out of 12
             'Archers': { hits: 6, dice: 12 },    // hits on 1-6 out of 12
@@ -157,6 +171,28 @@
         let currentArmyRemoving = null;
         let combatRound = 0;
 
+        function getCustomNames() {
+            const wantCustom = confirm('Would you like to enter custom player and army names?');
+            if (!wantCustom) return null;
+        
+            const redPlayer = prompt('Enter name for Attacking Player (or leave blank):') || '';
+            const redArmy = prompt('Enter name for Attacking Army (or leave blank):') || '';
+            const bluePlayer = prompt('Enter name for Defending Player (or leave blank):') || '';
+            const blueArmy = prompt('Enter name for Defending Army (or leave blank):') || '';
+        
+            return {
+                red: { player: redPlayer, army: redArmy },
+                blue: { player: bluePlayer, army: blueArmy }
+            };
+        }
+
+        function getArmyName(color) {
+            if (customNames && customNames[color].army) {
+                return customNames[color].army;
+            }
+            return color.charAt(0).toUpperCase() + color.slice(1);
+        }
+        
         // Initialize armies with Daimyo
         function initializeArmy(armyColor) {
             const grid = document.getElementById(`${armyColor}ArmyGrid`);
@@ -335,25 +371,26 @@
             // Disable start battle button and unit controls
             const startButton = document.querySelector('.battle-controls button');
             startButton.disabled = true;
+            startButton.style.display = 'none';
             
             // Hide all unit control buttons
             document.querySelectorAll('#redUnitTypes button, #blueUnitTypes button').forEach(button => {
                 button.style.display = 'none';
             });
         
-            // Add export log button
-            const exportButton = document.createElement('button');
-            exportButton.textContent = 'Export Battle Log';
-            exportButton.onclick = exportBattleLog;
-            document.querySelector('.battle-controls').appendChild(exportButton);
-            
-            // Add reload message to battle log
-            const log = document.getElementById('battleLog');
-            log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br><br>';
+            // Add export log button if it doesn't exist
+            if (!document.querySelector('.battle-controls .export-button')) {
+                const exportButton = document.createElement('button');
+                exportButton.textContent = 'Export Battle Log';
+                exportButton.className = 'export-button';
+                exportButton.onclick = exportBattleLog;
+                document.querySelector('.battle-controls').appendChild(exportButton);
+            }
             
             // Increment combat round
             combatRound++;
             
+            const log = document.getElementById('battleLog');
             log.innerHTML += `<b>Combat Round ${combatRound}</b><br>`;
             
             // Start with Missile Phase
@@ -442,12 +479,14 @@
         }
       
         function endCombatRound() {
-            const confirmContinue = confirm('Do you want to continue the battle?');
+            const confirmMessage = customNames ? "Does the attacker wish to continue the attack?" : "Do you want to continue the battle?";
+            const confirmContinue = confirm(confirmMessage);
             if (confirmContinue) {
                 startBattle(); // Starts a new round
             } else {
                 document.getElementById('battleLog').innerHTML += 
-                    '<br>Battle has been concluded.';
+                    '<br>Battle has been concluded.<br>' +
+                    '<br><i>(Reload the page to start a new battle)</i><br>';
                 currentBattleState = null;
                 currentPhase = null;
             }
@@ -504,11 +543,11 @@
         
             // Function to process unit rolls and create log
             const processUnitRolls = (army, units) => {
-                let missileLog = '';
+                let battleLog = '';
                 let hits = 0;
-        
-                ['Archers', 'Gunners'].forEach(type => {
-                    if (units[type].length > 0) {
+            
+                ['Daimyo', 'Samurai', 'Ashigaru'].forEach(type => {  // or appropriate unit types
+                    if (units[type]?.length > 0) {
                         const typeRolls = units[type].map(unit => {
                             const rules = UNIT_HIT_RULES[type];
                             const roll = Math.floor(Math.random() * 12) + 1;
@@ -516,14 +555,15 @@
                             return hit ? `hit (${roll})` : `miss (${roll})`;
                         });
                         
-                        missileLog += `${army} ${type}: ${typeRolls.join(', ')}<br>`;
+                        const armyName = getArmyName(army.toLowerCase());
+                        battleLog += `${armyName} ${type}: ${typeRolls.join(', ')}<br>`;
                         const typeHits = typeRolls.filter(roll => roll.startsWith('hit')).length;
                         hits += typeHits;
                     }
                 });
-        
-                missileLog += `Total ${army} Missile Hits: ${hits}<br>`;
-                return { log: missileLog, hits };
+            
+                battleLog += `Total ${getArmyName(army.toLowerCase())} ${currentPhase} Hits: ${hits}<br>`;
+                return { log: battleLog, hits };
             };
         
             // Process missile phase for both armies
@@ -563,12 +603,26 @@
         
             // If casualties exceed or equal remaining units (including Daimyo), destroy the entire army
             if (casualties >= remainingUnits.length) {
-                log.innerHTML += `<br>${armyColor.toUpperCase()} Army is completely destroyed!<br>`;
-                armyGrid.innerHTML = ''; // Remove all units
+                const armyName = getArmyName(armyColor);
+                const defeatMessage = defeatMessages[Math.floor(Math.random() * defeatMessages.length)];
                 
-                // Determine the winner
-                const otherArmy = armyColor === 'blue' ? 'Red' : 'Blue';
-                log.innerHTML += `${otherArmy} Army is victorious!<br>`;
+                // Add defeat message to army grid
+                const defeatDiv = document.createElement('div');
+                defeatDiv.style.textAlign = 'center';
+                defeatDiv.style.padding = '20px';
+                defeatDiv.style.color = 'red';
+                defeatDiv.style.fontWeight = 'bold';
+                defeatDiv.textContent = `${armyName} ${defeatMessage}`;
+                
+                armyGrid.innerHTML = ''; // Remove all units
+                armyGrid.appendChild(defeatDiv);
+                
+                // Update battle log
+                const otherArmyName = getArmyName(armyColor === 'blue' ? 'red' : 'blue');
+                log.innerHTML += `<br>${armyName} ${defeatMessage}<br>`;
+                log.innerHTML += `${otherArmyName} is victorious!<br>`;
+                log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br>';
+                
                 currentBattleState = null;
                 currentPhase = null;
                 return;
@@ -582,27 +636,14 @@
         
             // Check if casualties are valid
             if (casualties === 0) {
-                // Proceed to next phase based on current phase
-                if (currentPhase === 'Missile') {
-                    if (armyColor === 'blue') {
-                        proceedToRedCasualties();
-                    } else {
-                        proceedToMeleePhase();
-                    }
-                } else if (currentPhase === 'Melee') {
-                    if (armyColor === 'blue') {
-                        proceedToRedMeleeCasualties();
-                    } else {
-                        endCombatRound();
-                    }
-                }
+                handleNextPhase(armyColor);
                 return;
             }
         
             // Set current army removing
             currentArmyRemoving = armyColor;
         
-            let instructionText = `${armyColor.toUpperCase()} Army: Select ${casualties} casualties to remove`;
+            let instructionText = `${currentPhase} Phase - ${getArmyName(armyColor)}: Select ${casualties} casualties to remove`;
             if (nonDaimyoUnits > 0) {
                 instructionText += " (Daimyo must be the last unit remaining)";
             }
@@ -703,11 +744,11 @@
         
             // Function to process unit rolls and create log
             const processUnitRolls = (army, units) => {
-                let meleeLog = '';
+                let battleLog = '';
                 let hits = 0;
-        
-                ['Daimyo', 'Samurai', 'Ashigaru'].forEach(type => {
-                    if (units[type].length > 0) {
+            
+                ['Daimyo', 'Samurai', 'Ashigaru'].forEach(type => {  // or appropriate unit types
+                    if (units[type]?.length > 0) {
                         const typeRolls = units[type].map(unit => {
                             const rules = UNIT_HIT_RULES[type];
                             const roll = Math.floor(Math.random() * 12) + 1;
@@ -715,14 +756,15 @@
                             return hit ? `hit (${roll})` : `miss (${roll})`;
                         });
                         
-                        meleeLog += `${army} ${type}: ${typeRolls.join(', ')}<br>`;
+                        const armyName = getArmyName(army.toLowerCase());
+                        battleLog += `${armyName} ${type}: ${typeRolls.join(', ')}<br>`;
                         const typeHits = typeRolls.filter(roll => roll.startsWith('hit')).length;
                         hits += typeHits;
                     }
                 });
-        
-                meleeLog += `Total ${army} Melee Hits: ${hits}<br>`;
-                return { log: meleeLog, hits };
+            
+                battleLog += `Total ${getArmyName(army.toLowerCase())} ${currentPhase} Hits: ${hits}<br>`;
+                return { log: battleLog, hits };
             };
         
             // Process melee phase for both armies
@@ -752,6 +794,12 @@
             window.URL.revokeObjectURL(url);
         }
         
+        document.addEventListener('DOMContentLoaded', function() {
+            customNames = getCustomNames();
+            if (customNames) {
+                updateArmyHeaders(customNames);
+            }
+        });
     </script>
 </body>
 </html>
