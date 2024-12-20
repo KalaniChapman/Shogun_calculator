@@ -332,13 +332,30 @@
                 return;
             }
         
+            // Disable start battle button and unit controls
+            const startButton = document.querySelector('.battle-controls button');
+            startButton.disabled = true;
+            
+            // Hide all unit control buttons
+            document.querySelectorAll('#redUnitTypes button, #blueUnitTypes button').forEach(button => {
+                button.style.display = 'none';
+            });
+        
+            // Add export log button
+            const exportButton = document.createElement('button');
+            exportButton.textContent = 'Export Battle Log';
+            exportButton.onclick = exportBattleLog;
+            document.querySelector('.battle-controls').appendChild(exportButton);
+            
+            // Add reload message to battle log
+            const log = document.getElementById('battleLog');
+            log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br><br>';
+            
             // Increment combat round
             combatRound++;
-        
-            // Append to log instead of replacing
-            const log = document.getElementById('battleLog');
-            log.innerHTML += (log.innerHTML ? '<br><br>' : '') + `<b>Combat Round ${combatRound}</b><br>`;
-        
+            
+            log.innerHTML += `<b>Combat Round ${combatRound}</b><br>`;
+            
             // Start with Missile Phase
             currentPhase = 'Missile';
             currentBattleState = simulateMissilePhase(redArmy, blueArmy);
@@ -723,6 +740,18 @@
                 redCasualties: blueResults.hits
             };
         }
+
+        function exportBattleLog() {
+            const log = document.getElementById('battleLog').innerText;
+            const blob = new Blob([log], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'battle_log.txt';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+        
     </script>
 </body>
 </html>
