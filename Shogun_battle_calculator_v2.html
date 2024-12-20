@@ -571,6 +571,7 @@
                 // Determine the winner
                 const otherArmy = armyColor === 'blue' ? 'Red' : 'Blue';
                 log.innerHTML += `${otherArmy} Army is victorious!<br>`;
+                log.innerHTML += `<i>(Reload the page to start a new battle)</i>`;
                 currentBattleState = null;
                 currentPhase = null;
                 return;
