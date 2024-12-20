@@ -340,20 +340,11 @@
             document.querySelectorAll('#redUnitTypes button, #blueUnitTypes button').forEach(button => {
                 button.style.display = 'none';
             });
-        
-            // Add export log button
-            const exportButton = document.createElement('button');
-            exportButton.textContent = 'Export Battle Log';
-            exportButton.onclick = exportBattleLog;
-            document.querySelector('.battle-controls').appendChild(exportButton);
-            
-            // Add reload message to battle log
-            const log = document.getElementById('battleLog');
-            log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br><br>';
             
             // Increment combat round
             combatRound++;
             
+            const log = document.getElementById('battleLog');
             log.innerHTML += `<b>Combat Round ${combatRound}</b><br>`;
             
             // Start with Missile Phase
@@ -446,8 +437,18 @@
             if (confirmContinue) {
                 startBattle(); // Starts a new round
             } else {
-                document.getElementById('battleLog').innerHTML += 
-                    '<br>Battle has been concluded.';
+                const log = document.getElementById('battleLog');
+                log.innerHTML += '<br>Battle has been concluded.<br>';
+                log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br>';
+                
+                // Add export log button only at the end of the battle
+                if (!document.querySelector('.battle-controls button[onclick="exportBattleLog"]')) {
+                    const exportButton = document.createElement('button');
+                    exportButton.textContent = 'Export Battle Log';
+                    exportButton.onclick = exportBattleLog;
+                    document.querySelector('.battle-controls').appendChild(exportButton);
+                }
+                
                 currentBattleState = null;
                 currentPhase = null;
             }
