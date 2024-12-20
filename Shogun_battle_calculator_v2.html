@@ -614,12 +614,6 @@
                 currentPhase = null;
                 return;
             }
-
-            // If casualties equals number of non-Daimyo units, automatically select all non-Daimyo units
-            if (casualties === nonDaimyoUnits) {
-                const nonDaimyoElements = Array.from(remainingUnits).filter(unit => unit.dataset.type !== 'Daimyo');
-                nonDaimyoElements.forEach(unit => unit.classList.add('selected-casualty'));
-            }
         
             // Check if casualties are valid
             if (casualties === 0) {
@@ -640,14 +634,14 @@
                 return;
             }
         
-            // Set current army removing
             currentArmyRemoving = armyColor;
         
-            let instructionText = `${armyColor.toUpperCase()} Army: Select ${casualties} casualties to remove`;
+            let instructionText = `<div style="font-size: 1.2em; margin-bottom: 8px;"><b>${currentPhase} Phase Casualties</b></div>`;
+            instructionText += `${armyColor.toUpperCase()} Army: Select ${casualties} casualties to remove`;
             if (nonDaimyoUnits > 0) {
                 instructionText += " (Daimyo must be the last unit remaining)";
             }
-            instructions.textContent = instructionText;
+            instructions.innerHTML = instructionText;
             removeButton.style.display = 'block';
         }
 
