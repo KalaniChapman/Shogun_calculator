@@ -595,6 +595,42 @@
                 return;
             }
 
+            // If casualties equals number of non-Daimyo units, automatically select all non-Daimyo units
+            if (casualties === nonDaimyoUnits) {
+                const nonDaimyoElements = Array.from(remainingUnits).filter(unit => unit.dataset.type !== 'Daimyo');
+                nonDaimyoElements.forEach(unit => unit.classList.add('selected-casualty'));
+            }
+        
+            // Check if casualties are valid
+            if (casualties === 0) {
+                // Proceed to next phase based on current phase
+                if (currentPhase === 'Missile') {
+                    if (armyColor === 'blue') {
+                        proceedToRedCasualties();
+                    } else {
+                        proceedToMeleePhase();
+                    }
+                } else if (currentPhase === 'Melee') {
+                    if (armyColor === 'blue') {
+                        proceedToRedMeleeCasualties();
+                    } else {
+                        endCombatRound();
+                    }
+                }
+                return;
+            }
+        
+            // Set current army removing
+            currentArmyRemoving = armyColor;
+        
+            let instructionText = `${armyColor.toUpperCase()} Army: Select ${casualties} casualties to remove`;
+            if (nonDaimyoUnits > 0) {
+                instructionText += " (Daimyo must be the last unit remaining)";
+            }
+            instructions.textContent = instructionText;
+            removeButton.style.display = 'block';
+        }
+
         function removeCasualties() {
             const selectedCasualties = document.querySelectorAll('.selected-casualty');
             const expectedCasualties = currentBattleState[`${currentArmyRemoving}Casualties`];
