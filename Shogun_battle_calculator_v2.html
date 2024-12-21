@@ -90,6 +90,15 @@
             margin-bottom: 10px;
             color: #666;
         }
+        .controls-row {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .battle-controls {
+            display: flex;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -165,6 +174,22 @@
             'Ashigaru': 1
         };        
 
+        const VICTORY_MESSAGES = [
+            "giggles with glee!",
+            "dances on %loser%'s grave!",
+            "meditates on success amongst the smoldering corpses of his enemy!",
+            "bathes in their ancestors' pride!",
+            "smiles smugly at %loser%!"
+        ];
+        
+        const DEFEAT_MESSAGES = [
+            "dies of shame.",
+            "commits seppuku.",
+            "has disgraced his ancestors.",
+            "'s remaining units and provinces wish they had a more accomplished leader!",
+            "skulks away to lick their wounds and vows revenge!"
+        ];
+        
         let currentBattleState = null;
         let currentPhase = null;
         let currentArmyRemoving = null;
@@ -262,6 +287,23 @@
                     bluePlayerDiv.textContent = `Commander: ${bluePlayerName}`;
                 }
             }
+        }
+
+        // Function to get army name
+        function getArmyName(color) {
+            const armyTitle = document.querySelector(`#${color}ArmySetup h2`).textContent;
+            return armyTitle || `${color.toUpperCase()} Army`;
+        }
+        
+        // Function to get player name
+        function getPlayerName(color) {
+            const playerDiv = document.querySelector(`#${color}ArmySetup .player-name`);
+            return playerDiv ? playerDiv.textContent.replace('Commander: ', '') : null;
+        }
+        
+        // Function to get random message
+        function getRandomMessage(array) {
+            return array[Math.floor(Math.random() * array.length)];
         }
         
         function findAvailableRow(armyColor, unitType) {
@@ -421,11 +463,13 @@
                 return;
             }
         
-            // Hide both Start Battle and Banzai buttons
+            // Hide customize button along with other controls
+            const customizeButton = document.getElementById('customizeButton');
             const startButton = document.querySelector('.battle-controls button');
             const banzaiButton = document.getElementById('banzaiButton');
             
-            startButton.style.display = 'none';
+            if (customizeButton) customizeButton.style.display = 'none';
+            if (startButton) startButton.style.display = 'none';
             if (banzaiButton) banzaiButton.style.display = 'none';
             
             // Hide all unit control buttons
@@ -584,6 +628,8 @@
         
         function simulateMissilePhase(redArmy, blueArmy) {
             const log = document.getElementById('battleLog');
+            const redArmyName = getArmyName('red');
+            const blueArmyName = getArmyName('blue');
             log.innerHTML += '<br><u>Missile Phase</u>:<br>';
         
             const redMissileUnits = {
@@ -601,7 +647,7 @@
                 let missileLog = '';
                 let hits = 0;
         
-                ['Archer', 'Gunner'].forEach(type => {
+                ['Archers', 'Gunners'].forEach(type => {
                     if (units[type].length > 0) {
                         const typeRolls = units[type].map(unit => {
                             const rules = UNIT_HIT_RULES[type];
@@ -610,13 +656,14 @@
                             return hit ? `hit (${roll})` : `miss (${roll})`;
                         });
                         
-                        missileLog += `${army} ${type}s: ${typeRolls.join(', ')}<br>`;
+                        const armyName = army === 'Red' ? redArmyName : blueArmyName;
+                        missileLog += `${armyName} ${type}: ${typeRolls.join(', ')}<br>`;
                         const typeHits = typeRolls.filter(roll => roll.startsWith('hit')).length;
                         hits += typeHits;
                     }
                 });
         
-                missileLog += `Total ${army} Missile Hits: ${hits}<br>`;
+                missileLog += `Total ${army === 'Red' ? redArmyName : blueArmyName} Missile Hits: ${hits}<br>`;
                 return { log: missileLog, hits };
             };
         
@@ -814,7 +861,9 @@
         
         function simulateMeleePhase(redArmy, blueArmy) {
             const log = document.getElementById('battleLog');
-            log.innerHTML += '<br><u>Melee Phase</u>:<br>';
+            const redArmyName = getArmyName('red');
+            const blueArmyName = getArmyName('blue');
+            log.innerHTML += '<br><u>Missile Phase</u>:<br>';
         
             const redMeleeUnits = {
                 Daimyo: Array.from(redArmy).filter(u => u.dataset.type === 'Daimyo'),
@@ -833,7 +882,7 @@
                 let meleeLog = '';
                 let hits = 0;
         
-                ['Daimyo', 'Samurai', 'Ashigaru'].forEach(type => {
+                ['Daimyo', 'Samurai', 'Gunners'].forEach(type => {
                     if (units[type].length > 0) {
                         const typeRolls = units[type].map(unit => {
                             const rules = UNIT_HIT_RULES[type];
@@ -842,13 +891,14 @@
                             return hit ? `hit (${roll})` : `miss (${roll})`;
                         });
                         
-                        meleeLog += `${army} ${type}: ${typeRolls.join(', ')}<br>`;
+                        const armyName = army === 'Red' ? redArmyName : blueArmyName;
+                        meleeLog += `${armyName} ${type}: ${typeRolls.join(', ')}<br>`;
                         const typeHits = typeRolls.filter(roll => roll.startsWith('hit')).length;
                         hits += typeHits;
                     }
                 });
         
-                meleeLog += `Total ${army} Melee Hits: ${hits}<br>`;
+                meleeLog += `Total ${army === 'Red' ? redArmyName : blueArmyName} Melee Hits: ${hits}<br>`;
                 return { log: meleeLog, hits };
             };
         
@@ -1045,6 +1095,35 @@
                         button.style.display = 'none';
                     }
                 });
+            }
+        }
+
+        // Update the endCombatRound and endBanzaiBattle functions to use custom names and add player messages
+        function addBattleEndMessages(log, redDestroyed, blueDestroyed) {
+            const redArmyName = getArmyName('red');
+            const blueArmyName = getArmyName('blue');
+            const redPlayer = getPlayerName('red');
+            const bluePlayer = getPlayerName('blue');
+        
+            if (redDestroyed && blueDestroyed) {
+                log.innerHTML += `<br>The ${redArmyName} and ${blueArmyName} have annihilated each other!!<br>`;
+                if (redPlayer && bluePlayer) {
+                    log.innerHTML += `<br>Both ${redPlayer} and ${bluePlayer} ${getRandomMessage(DEFEAT_MESSAGES)}<br>`;
+                }
+            } else if (redDestroyed) {
+                log.innerHTML += `<br>${redArmyName} is completely destroyed!<br>${blueArmyName} is victorious!<br>`;
+                if (redPlayer && bluePlayer) {
+                    let victoryMsg = getRandomMessage(VICTORY_MESSAGES).replace('%loser%', redPlayer);
+                    let defeatMsg = getRandomMessage(DEFEAT_MESSAGES);
+                    log.innerHTML += `<br>${bluePlayer} ${victoryMsg}<br>${redPlayer} ${defeatMsg}<br>`;
+                }
+            } else if (blueDestroyed) {
+                log.innerHTML += `<br>${blueArmyName} is completely destroyed!<br>${redArmyName} is victorious!<br>`;
+                if (redPlayer && bluePlayer) {
+                    let victoryMsg = getRandomMessage(VICTORY_MESSAGES).replace('%loser%', bluePlayer);
+                    let defeatMsg = getRandomMessage(DEFEAT_MESSAGES);
+                    log.innerHTML += `<br>${redPlayer} ${victoryMsg}<br>${bluePlayer} ${defeatMsg}<br>`;
+                }
             }
         }
         
