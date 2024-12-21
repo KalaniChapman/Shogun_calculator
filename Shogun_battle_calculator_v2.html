@@ -350,9 +350,11 @@
                 return;
             }
         
-            // Disable start battle button but keep the container
-            const startButton = document.querySelector('.battle-controls button');
-            startButton.style.display = 'none';  // Changed from disabled = true
+            // Disable start battle and banzai buttons but keep the container
+            const startButton = document.querySelector('.battle-controls button[onclick="startBattle()"]');
+            const banzaiButton = document.querySelector('.battle-controls button[onclick="startBanzaiBattle()"]');
+            startButton.style.display = 'none';
+            if (banzaiButton) banzaiButton.style.display = 'none';
             
             // Hide all unit control buttons
             document.querySelectorAll('#redUnitTypes button, #blueUnitTypes button').forEach(button => {
@@ -953,13 +955,24 @@
         
             log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br>';
             
-            // Add export log button
+            // Show battle controls container if hidden
+            const battleControls = document.querySelector('.battle-controls');
+            battleControls.style.display = 'block';
+            
+            // Add export log button if it doesn't exist
             if (!document.getElementById('exportLogButton')) {
                 const exportButton = document.createElement('button');
                 exportButton.id = 'exportLogButton';
                 exportButton.textContent = 'Export Battle Log';
                 exportButton.onclick = exportBattleLog;
-                document.querySelector('.battle-controls').appendChild(exportButton);
+                battleControls.appendChild(exportButton);
+                
+                // Make sure only the export button is visible
+                battleControls.querySelectorAll('button').forEach(button => {
+                    if (button.id !== 'exportLogButton') {
+                        button.style.display = 'none';
+                    }
+                });
             }
         }
         
