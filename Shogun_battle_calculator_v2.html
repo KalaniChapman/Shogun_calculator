@@ -182,10 +182,16 @@
         // Call initialization for both armies and banzai button
         initializeArmy('red');
         initializeArmy('blue');
+        addBanzaiButton(); 
 
         function addBanzaiButton() {
-            const battleControls = document.querySelector('.battle-controls');
-            const startButton = battleControls.querySelector('button');
+            // Ensure battle controls container exists
+            let battleControls = document.querySelector('.battle-controls');
+            if (!battleControls) {
+                battleControls = document.createElement('div');
+                battleControls.className = 'battle-controls';
+                document.querySelector('.controls-row').appendChild(battleControls);
+            }
             
             // Only add if it doesn't already exist
             if (!document.getElementById('banzaiButton')) {
@@ -194,7 +200,8 @@
                 banzaiButton.textContent = 'Banzai!';
                 banzaiButton.onclick = startBanzaiBattle;
                 
-                // Insert after the Start Battle button
+                // Add after the Start Battle button if it exists, otherwise append to controls
+                const startButton = battleControls.querySelector('button');
                 if (startButton) {
                     startButton.insertAdjacentElement('afterend', banzaiButton);
                 } else {
