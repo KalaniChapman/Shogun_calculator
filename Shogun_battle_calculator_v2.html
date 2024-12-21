@@ -152,6 +152,14 @@
             'Ashigaru': { hits: 4, dice: 12 }    // hits on 1-4 out of 12
         };
 
+        const UNIT_VALUES = {
+            'Daimyo': 100,  // Effectively infinite as it must be last
+            'Archers': 4,
+            'Samurai': 3,
+            'Gunners': 2,
+            'Ashigaru': 1
+        };        
+
         let currentBattleState = null;
         let currentPhase = null;
         let currentArmyRemoving = null;
@@ -171,9 +179,19 @@
             firstRow.appendChild(daimyo);
         }
 
-        // Call initialization for both armies
+        // Call initialization for both armies and banzai button
         initializeArmy('red');
         initializeArmy('blue');
+
+        function addBanzaiButton() {
+            const battleControls = document.querySelector('.battle-controls');
+            const banzaiButton = document.createElement('button');
+            banzaiButton.textContent = 'Banzai!';
+            banzaiButton.onclick = startBanzaiBattle;
+            battleControls.appendChild(banzaiButton);
+        }
+        
+        addBanzaiButton();
 
         function findAvailableRow(armyColor, unitType) {
             const grid = document.getElementById(`${armyColor}ArmyGrid`);
@@ -785,6 +803,164 @@
             a.download = 'battle_log.txt';
             a.click();
             window.URL.revokeObjectURL(url);
+        }
+
+        // Banzai battle resolution section
+        function startBanzaiBattle() {
+            const redArmy = document.querySelectorAll('#redArmyGrid .unit');
+            const blueArmy = document.querySelectorAll('#blueArmyGrid .unit');
+            
+            if (redArmy.length === 0 || blueArmy.length === 0) {
+                alert('Both armies must have units to start battle!');
+                return;
+            }
+        
+            // Disable all control buttons
+            document.querySelector('.battle-controls').style.display = 'none';
+            document.querySelectorAll('#redUnitTypes button, #blueUnitTypes button').forEach(button => {
+                button.style.display = 'none';
+            });
+        
+            runBanzaiBattleRound();
+        }
+        
+        function runBanzaiBattleRound() {
+            const redArmy = document.querySelectorAll('#redArmyGrid .unit');
+            const blueArmy = document.querySelectorAll('#blueArmyGrid .unit');
+            
+            if (redArmy.length === 0 || blueArmy.length === 0) {
+                endBanzaiBattle();
+                return;
+            }
+        
+            // Increment and log combat round
+            combatRound++;
+            const log = document.getElementById('battleLog');
+            log.innerHTML += `<br><b>Combat Round ${combatRound}</b><br>`;
+        
+            // Run Missile Phase
+            const missileState = simulateMissilePhase(redArmy, blueArmy);
+            
+            // Process missile casualties
+            if (missileState.blueCasualties > 0) {
+                const blueCasualties = selectOptimalCasualties('blue', missileState.blueCasualties, 'Melee');
+                removeBanzaiCasualties('blue', blueCasualties);
+            }
+            
+            if (missileState.redCasualties > 0) {
+                const redCasualties = selectOptimalCasualties('red', missileState.redCasualties, 'Melee');
+                removeBanzaiCasualties('red', redCasualties);
+            }
+        
+            // Check if battle should continue
+            if (document.querySelectorAll('#redArmyGrid .unit').length === 0 || 
+                document.querySelectorAll('#blueArmyGrid .unit').length === 0) {
+                endBanzaiBattle();
+                return;
+            }
+        
+            // Run Melee Phase
+            const meleeState = simulateMeleePhase(
+                document.querySelectorAll('#redArmyGrid .unit'),
+                document.querySelectorAll('#blueArmyGrid .unit')
+            );
+        
+            // Process melee casualties
+            if (meleeState.blueCasualties > 0) {
+                const blueCasualties = selectOptimalCasualties('blue', meleeState.blueCasualties, 'Missile');
+                removeBanzaiCasualties('blue', blueCasualties);
+            }
+            
+            if (meleeState.redCasualties > 0) {
+                const redCasualties = selectOptimalCasualties('red', meleeState.redCasualties, 'Missile');
+                removeBanzaiCasualties('red', redCasualties);
+            }
+        
+            // Check if battle should continue
+            if (document.querySelectorAll('#redArmyGrid .unit').length === 0 || 
+                document.querySelectorAll('#blueArmyGrid .unit').length === 0) {
+                endBanzaiBattle();
+                return;
+            }
+        
+            // Continue to next round
+            setTimeout(runBanzaiBattleRound, 1000); // Add delay between rounds
+        }
+        
+        function selectOptimalCasualties(armyColor, casualtyCount, nextPhase) {
+            const armyGrid = document.getElementById(`${armyColor}ArmyGrid`);
+            const units = Array.from(armyGrid.querySelectorAll('.unit'));
+            const casualties = [];
+            
+            // Never select Daimyo unless it's the last unit
+            const nonDaimyoUnits = units.filter(unit => unit.dataset.type !== 'Daimyo');
+            if (nonDaimyoUnits.length === 0 && casualtyCount > 0) {
+                return [units[0]]; // Return Daimyo if it's the last unit
+            }
+        
+            // Create lists of units by type
+            const unitsByType = {
+                'Archers': units.filter(u => u.dataset.type === 'Archers'),
+                'Samurai': units.filter(u => u.dataset.type === 'Samurai'),
+                'Gunners': units.filter(u => u.dataset.type === 'Gunners'),
+                'Ashigaru': units.filter(u => u.dataset.type === 'Ashigaru')
+            };
+        
+            // Define unit selection priority based on next phase
+            const priorityList = nextPhase === 'Missile' ? 
+                ['Gunners', 'Ashigaru', 'Archers', 'Samurai'] : // Preserve missile units
+                ['Ashigaru', 'Gunners', 'Samurai', 'Archers'];  // Preserve melee units
+        
+            // Select casualties based on priority
+            while (casualties.length < casualtyCount && nonDaimyoUnits.length > casualties.length) {
+                for (const unitType of priorityList) {
+                    if (casualties.length >= casualtyCount) break;
+                    
+                    const availableUnits = unitsByType[unitType].filter(
+                        unit => !casualties.includes(unit)
+                    );
+                    
+                    if (availableUnits.length > 0) {
+                        casualties.push(availableUnits[0]);
+                    }
+                }
+            }
+        
+            return casualties;
+        }
+        
+        function removeBanzaiCasualties(armyColor, casualties) {
+            const log = document.getElementById('battleLog');
+            log.innerHTML += `<br>${armyColor.toUpperCase()} Army removes: ${
+                casualties.map(unit => unit.dataset.type).join(', ')
+            }<br>`;
+            
+            casualties.forEach(unit => unit.remove());
+        }
+        
+        function endBanzaiBattle() {
+            const log = document.getElementById('battleLog');
+            const redArmy = document.querySelectorAll('#redArmyGrid .unit');
+            const blueArmy = document.querySelectorAll('#blueArmyGrid .unit');
+        
+            if (redArmy.length === 0 && blueArmy.length === 0) {
+                log.innerHTML += '<br>The armies have annihilated each other!!<br>';
+            } else if (redArmy.length === 0) {
+                log.innerHTML += '<br>RED Army is completely destroyed!<br>BLUE Army is victorious!<br>';
+            } else if (blueArmy.length === 0) {
+                log.innerHTML += '<br>BLUE Army is completely destroyed!<br>RED Army is victorious!<br>';
+            }
+        
+            log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br>';
+            
+            // Add export log button
+            if (!document.getElementById('exportLogButton')) {
+                const exportButton = document.createElement('button');
+                exportButton.id = 'exportLogButton';
+                exportButton.textContent = 'Export Battle Log';
+                exportButton.onclick = exportBattleLog;
+                document.querySelector('.battle-controls').appendChild(exportButton);
+            }
         }
         
     </script>
