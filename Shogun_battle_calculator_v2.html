@@ -186,12 +186,11 @@
         function addBanzaiButton() {
             const battleControls = document.querySelector('.battle-controls');
             const banzaiButton = document.createElement('button');
+            banzaiButton.id = 'banzaiButton';  // Add an ID for easier targeting
             banzaiButton.textContent = 'Banzai!';
             banzaiButton.onclick = startBanzaiBattle;
             battleControls.appendChild(banzaiButton);
         }
-        
-        addBanzaiButton();
 
         function findAvailableRow(armyColor, unitType) {
             const grid = document.getElementById(`${armyColor}ArmyGrid`);
@@ -350,10 +349,11 @@
                 return;
             }
         
-            // Disable start battle and banzai buttons but keep the container
-            const startButton = document.querySelector('.battle-controls button[onclick="startBattle()"]');
-            const banzaiButton = document.querySelector('.battle-controls button[onclick="startBanzaiBattle()"]');
-            startButton.style.display = 'none';
+            // Hide both Start Battle and Banzai buttons
+            const startButton = document.querySelector('.battle-controls button:not(#banzaiButton):not(#exportLogButton)');
+            const banzaiButton = document.getElementById('banzaiButton');
+            
+            if (startButton) startButton.style.display = 'none';
             if (banzaiButton) banzaiButton.style.display = 'none';
             
             // Hide all unit control buttons
