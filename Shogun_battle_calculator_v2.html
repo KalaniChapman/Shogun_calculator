@@ -647,9 +647,9 @@
                 let missileLog = '';
                 let hits = 0;
         
-                ['Archers', 'Gunners'].forEach(type => {
-                    if (units[type].length > 0) {
-                        const typeRolls = units[type].map(unit => {
+                Object.entries(units).forEach(([type, unitList]) => {
+                    if (unitList.length > 0) {
+                        const typeRolls = unitList.map(unit => {
                             const rules = UNIT_HIT_RULES[type];
                             const roll = Math.floor(Math.random() * 12) + 1;
                             const hit = roll <= rules.hits;
@@ -657,7 +657,7 @@
                         });
                         
                         const armyName = army === 'Red' ? redArmyName : blueArmyName;
-                        missileLog += `${armyName} ${type}: ${typeRolls.join(', ')}<br>`;
+                        missileLog += `${armyName} ${type}s: ${typeRolls.join(', ')}<br>`;
                         const typeHits = typeRolls.filter(roll => roll.startsWith('hit')).length;
                         hits += typeHits;
                     }
@@ -863,7 +863,7 @@
             const log = document.getElementById('battleLog');
             const redArmyName = getArmyName('red');
             const blueArmyName = getArmyName('blue');
-            log.innerHTML += '<br><u>Missile Phase</u>:<br>';
+            log.innerHTML += '<br><u>Melee Phase</u>:<br>';
         
             const redMeleeUnits = {
                 Daimyo: Array.from(redArmy).filter(u => u.dataset.type === 'Daimyo'),
@@ -882,9 +882,9 @@
                 let meleeLog = '';
                 let hits = 0;
         
-                ['Daimyo', 'Samurai', 'Gunners'].forEach(type => {
-                    if (units[type].length > 0) {
-                        const typeRolls = units[type].map(unit => {
+                Object.entries(units).forEach(([type, unitList]) => {
+                    if (unitList.length > 0) {
+                        const typeRolls = unitList.map(unit => {
                             const rules = UNIT_HIT_RULES[type];
                             const roll = Math.floor(Math.random() * 12) + 1;
                             const hit = roll <= rules.hits;
@@ -892,7 +892,7 @@
                         });
                         
                         const armyName = army === 'Red' ? redArmyName : blueArmyName;
-                        meleeLog += `${armyName} ${type}: ${typeRolls.join(', ')}<br>`;
+                        meleeLog += `${armyName} ${type}s: ${typeRolls.join(', ')}<br>`;
                         const typeHits = typeRolls.filter(roll => roll.startsWith('hit')).length;
                         hits += typeHits;
                     }
