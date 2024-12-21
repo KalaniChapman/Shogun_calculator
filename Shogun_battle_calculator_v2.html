@@ -100,8 +100,8 @@
                     </div>
                     <div id="redUnitTypes" class="unit-types">
                         <button onclick="addUnit('red', 'Samurai')">Samurai</button>
-                        <button onclick="addUnit('red', 'Archers')">Archers</button>
-                        <button onclick="addUnit('red', 'Gunners')">Gunners</button>
+                        <button onclick="addUnit('red', 'Archer')">Archer</button>
+                        <button onclick="addUnit('red', 'Gunner')">Gunner</button>
                         <button onclick="addUnit('red', 'Ashigaru')">Ashigaru</button>
                         <button onclick="resetArmy('red')">Reset Army</button>
                     </div>
@@ -116,8 +116,8 @@
                     </div>
                     <div id="blueUnitTypes" class="unit-types">
                         <button onclick="addUnit('blue', 'Samurai')">Samurai</button>
-                        <button onclick="addUnit('blue', 'Archers')">Archers</button>
-                        <button onclick="addUnit('blue', 'Gunners')">Gunners</button>
+                        <button onclick="addUnit('blue', 'Archer')">Archer</button>
+                        <button onclick="addUnit('blue', 'Gunner')">Gunner</button>
                         <button onclick="addUnit('blue', 'Ashigaru')">Ashigaru</button>
                         <button onclick="resetArmy('blue')">Reset Army</button>
                     </div>
@@ -146,17 +146,17 @@
     <script>
         const UNIT_HIT_RULES = {
             'Daimyo': { hits: 6, dice: 12 },     // hits on 1-6 out of 12
-            'Archers': { hits: 6, dice: 12 },    // hits on 1-6 out of 12
+            'Archer': { hits: 6, dice: 12 },    // hits on 1-6 out of 12
             'Samurai': { hits: 5, dice: 12 },    // hits on 1-5 out of 12
-            'Gunners': { hits: 4, dice: 12 },    // hits on 1-4 out of 12
+            'Gunner': { hits: 4, dice: 12 },    // hits on 1-4 out of 12
             'Ashigaru': { hits: 4, dice: 12 }    // hits on 1-4 out of 12
         };
 
         const UNIT_VALUES = {
             'Daimyo': 100,  // Effectively infinite as it must be last
-            'Archers': 4,
+            'Archer': 4,
             'Samurai': 3,
-            'Gunners': 2,
+            'Gunner': 2,
             'Ashigaru': 1
         };        
 
@@ -215,25 +215,25 @@
             const rows = grid.querySelectorAll('.army-row');
             
             // First row: Daimyo (pre-populated), Archers, and Samurai
-            if (['Archers', 'Samurai'].includes(unitType)) {
+            if (['Archer', 'Samurai'].includes(unitType)) {
                 const firstRow = rows[0];
                 if (firstRow.children.length < 5) {
                     return firstRow;
                 }
             }
         
-            // Rows 2 and 3: Gunners first, then Ashigaru
-            if (['Gunners', 'Ashigaru'].includes(unitType)) {
+            // Rows 2 and 3: Gunner first, then Ashigaru
+            if (['Gunner', 'Ashigaru'].includes(unitType)) {
                 const secondRow = rows[1];
                 const thirdRow = rows[2];
                 
-                // Prioritize Gunners in the second row first
-                if (unitType === 'Gunners' && secondRow.children.length < 5) {
+                // Prioritize Gunner in the second row first
+                if (unitType === 'Gunner' && secondRow.children.length < 5) {
                     return secondRow;
                 }
                 
-                // If no more space for Gunners in second row, try third row
-                if (unitType === 'Gunners' && thirdRow.children.length < 5) {
+                // If no more space for Gunner in second row, try third row
+                if (unitType === 'Gunner' && thirdRow.children.length < 5) {
                     return thirdRow;
                 }
                 
@@ -257,9 +257,9 @@
         function sortRowUnits(row) {
             const priority = {
                 'Daimyo': 1,  // Always first in first row
-                'Archers': 2,
+                'Archer': 2,
                 'Samurai': 3,
-                'Gunners': 1, // First in subsequent rows
+                'Gunner': 1, // First in subsequent rows
                 'Ashigaru': 2
             };
         
@@ -292,9 +292,9 @@
                 // Set unit text based on type
                 switch(unitType) {
                     case 'Daimyo': unit.textContent = 'D'; break;
-                    case 'Archers': unit.textContent = 'A'; break;
+                    case 'Archer': unit.textContent = 'A'; break;
                     case 'Samurai': unit.textContent = 'S'; break;
-                    case 'Gunners': unit.textContent = 'g'; break;
+                    case 'Gunner': unit.textContent = 'g'; break;
                     case 'Ashigaru': unit.textContent = 'a'; break;
                 }
                 
@@ -477,7 +477,7 @@
             } else {
                 const log = document.getElementById('battleLog');
                 log.innerHTML += '<br>Battle has been concluded.<br>';
-                log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br>';
+                log.innerHTML += '<br><i>(Reload the page to start a new battle - press F5)</i><br>';
                 
                 // Add export log button only at the end of the battle
                 if (!document.getElementById('exportLogButton')) {
@@ -533,13 +533,13 @@
             log.innerHTML += '<br><u>Missile Phase</u>:<br>';
         
             const redMissileUnits = {
-                Archers: Array.from(redArmy).filter(u => u.dataset.type === 'Archers'),
-                Gunners: Array.from(redArmy).filter(u => u.dataset.type === 'Gunners')
+                Archer: Array.from(redArmy).filter(u => u.dataset.type === 'Archer'),
+                Gunner: Array.from(redArmy).filter(u => u.dataset.type === 'Gunner')
             };
         
             const blueMissileUnits = {
-                Archers: Array.from(blueArmy).filter(u => u.dataset.type === 'Archers'),
-                Gunners: Array.from(blueArmy).filter(u => u.dataset.type === 'Gunners')
+                Archer: Array.from(blueArmy).filter(u => u.dataset.type === 'Archer'),
+                Gunner: Array.from(blueArmy).filter(u => u.dataset.type === 'Gunner')
             };
         
             // Function to process unit rolls and create log
@@ -547,7 +547,7 @@
                 let missileLog = '';
                 let hits = 0;
         
-                ['Archers', 'Gunners'].forEach(type => {
+                ['Archer', 'Gunner'].forEach(type => {
                     if (units[type].length > 0) {
                         const typeRolls = units[type].map(unit => {
                             const rules = UNIT_HIT_RULES[type];
@@ -556,7 +556,7 @@
                             return hit ? `hit (${roll})` : `miss (${roll})`;
                         });
                         
-                        missileLog += `${army} ${type}: ${typeRolls.join(', ')}<br>`;
+                        missileLog += `${army} ${type}s: ${typeRolls.join(', ')}<br>`;
                         const typeHits = typeRolls.filter(roll => roll.startsWith('hit')).length;
                         hits += typeHits;
                     }
@@ -629,7 +629,7 @@
                     log.innerHTML += `${victorArmy} Army is victorious!<br>`;
                 }
         
-                log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br>';
+                log.innerHTML += '<br><i>(Reload the page to start a new battle - press F5)</i><br>';
                 
                 // Make sure battle controls container exists and is visible
                 let battleControls = document.querySelector('.battle-controls');
@@ -920,16 +920,16 @@
         
             // Create lists of units by type
             const unitsByType = {
-                'Archers': units.filter(u => u.dataset.type === 'Archers'),
+                'Archer': units.filter(u => u.dataset.type === 'Archer'),
                 'Samurai': units.filter(u => u.dataset.type === 'Samurai'),
-                'Gunners': units.filter(u => u.dataset.type === 'Gunners'),
+                'Gunner': units.filter(u => u.dataset.type === 'Gunner'),
                 'Ashigaru': units.filter(u => u.dataset.type === 'Ashigaru')
             };
         
             // Define unit selection priority based on next phase
             const priorityList = nextPhase === 'Missile' ? 
-                ['Gunners', 'Ashigaru', 'Archers', 'Samurai'] : // Preserve missile units
-                ['Ashigaru', 'Gunners', 'Samurai', 'Archers'];  // Preserve melee units
+                ['Gunner', 'Ashigaru', 'Archer', 'Samurai'] : // Preserve missile units
+                ['Ashigaru', 'Gunner', 'Samurai', 'Archer'];  // Preserve melee units
         
             // Select casualties based on priority
             while (casualties.length < casualtyCount && nonDaimyoUnits.length > casualties.length) {
@@ -971,7 +971,7 @@
                 log.innerHTML += '<br>BLUE Army is completely destroyed!<br>RED Army is victorious!<br>';
             }
         
-            log.innerHTML += '<br><i>(Reload the page to start a new battle)</i><br>';
+            log.innerHTML += '<br><i>(Reload the page to start a new battle - press F5)</i><br>';
             
             // Show battle controls container if hidden
             const battleControls = document.querySelector('.battle-controls');
