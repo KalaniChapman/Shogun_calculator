@@ -569,6 +569,32 @@
         }
       
         function endCombatRound() {
+            const redArmy = document.querySelectorAll('#redArmyGrid .unit');
+            const blueArmy = document.querySelectorAll('#blueArmyGrid .unit');
+            
+            // Check if either army is destroyed
+            if (redArmy.length === 0 || blueArmy.length === 0) {
+                const log = document.getElementById('battleLog');
+                
+                // Add battle end messages with custom names and player messages
+                addBattleEndMessages(log, redArmy.length === 0, blueArmy.length === 0);
+                
+                log.innerHTML += '<br><i>(Reload the page to start a new battle - press F5)</i><br>';
+                
+                // Add export log button
+                if (!document.getElementById('exportLogButton')) {
+                    const exportButton = document.createElement('button');
+                    exportButton.id = 'exportLogButton';
+                    exportButton.textContent = 'Export Battle Log';
+                    exportButton.onclick = exportBattleLog;
+                    document.querySelector('.battle-controls').appendChild(exportButton);
+                }
+                
+                currentBattleState = null;
+                currentPhase = null;
+                return;
+            }
+        
             const confirmContinue = confirm('Do you want to continue the battle?');
             if (confirmContinue) {
                 startBattle(); // Starts a new round
@@ -577,7 +603,7 @@
                 log.innerHTML += '<br>Battle has been concluded.<br>';
                 log.innerHTML += '<br><i>(Reload the page to start a new battle - press F5)</i><br>';
                 
-                // Add export log button only at the end of the battle
+                // Add export log button
                 if (!document.getElementById('exportLogButton')) {
                     const exportButton = document.createElement('button');
                     exportButton.id = 'exportLogButton';
@@ -657,7 +683,9 @@
                         });
                         
                         const armyName = army === 'Red' ? redArmyName : blueArmyName;
-                        missileLog += `${armyName} ${type}s: ${typeRolls.join(', ')}<br>`;
+                        // Add 's' only for Archer and Gunner
+                        const typePlural = ['Archer', 'Gunner'].includes(type) ? type + 's' : type;
+                        missileLog += `${armyName} ${typePlural}: ${typeRolls.join(', ')}<br>`;
                         const typeHits = typeRolls.filter(roll => roll.startsWith('hit')).length;
                         hits += typeHits;
                     }
@@ -892,7 +920,7 @@
                         });
                         
                         const armyName = army === 'Red' ? redArmyName : blueArmyName;
-                        meleeLog += `${armyName} ${type}s: ${typeRolls.join(', ')}<br>`;
+                        meleeLog += `${armyName} ${type}: ${typeRolls.join(', ')}<br>`;
                         const typeHits = typeRolls.filter(roll => roll.startsWith('hit')).length;
                         hits += typeHits;
                     }
@@ -1067,13 +1095,8 @@
             const redArmy = document.querySelectorAll('#redArmyGrid .unit');
             const blueArmy = document.querySelectorAll('#blueArmyGrid .unit');
         
-            if (redArmy.length === 0 && blueArmy.length === 0) {
-                log.innerHTML += '<br>The armies have annihilated each other!!<br>';
-            } else if (redArmy.length === 0) {
-                log.innerHTML += '<br>RED Army is completely destroyed!<br>BLUE Army is victorious!<br>';
-            } else if (blueArmy.length === 0) {
-                log.innerHTML += '<br>BLUE Army is completely destroyed!<br>RED Army is victorious!<br>';
-            }
+            // Add battle end messages with custom names and player messages
+            addBattleEndMessages(log, redArmy.length === 0, blueArmy.length === 0);
         
             log.innerHTML += '<br><i>(Reload the page to start a new battle - press F5)</i><br>';
             
