@@ -85,6 +85,11 @@
         .hit-highlight {
             background-color: rgba(255, 0, 0, 0.2);
         }
+        .player-name {
+            font-style: italic;
+            margin-bottom: 10px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -182,9 +187,9 @@
         // Call initialization for both armies and banzai button
         initializeArmy('red');
         initializeArmy('blue');
-        addBanzaiButton(); 
+        setupBattleControls();
 
-        function addBanzaiButton() {
+        function setupBattleControls() {
             // Ensure battle controls container exists
             let battleControls = document.querySelector('.battle-controls');
             if (!battleControls) {
@@ -193,23 +198,72 @@
                 document.querySelector('.controls-row').appendChild(battleControls);
             }
             
-            // Only add if it doesn't already exist
+            // Get the existing Start Battle button
+            const startButton = battleControls.querySelector('button');
+            
+            // Add Customize button
+            if (!document.getElementById('customizeButton')) {
+                const customizeButton = document.createElement('button');
+                customizeButton.id = 'customizeButton';
+                customizeButton.textContent = 'Customize';
+                customizeButton.onclick = customizeArmies;
+                // Insert after Start Battle button
+                startButton.insertAdjacentElement('afterend', customizeButton);
+            }
+            
+            // Add Banzai button
             if (!document.getElementById('banzaiButton')) {
                 const banzaiButton = document.createElement('button');
                 banzaiButton.id = 'banzaiButton';
                 banzaiButton.textContent = 'Banzai!';
                 banzaiButton.onclick = startBanzaiBattle;
-                
-                // Add after the Start Battle button if it exists, otherwise append to controls
-                const startButton = battleControls.querySelector('button');
-                if (startButton) {
-                    startButton.insertAdjacentElement('afterend', banzaiButton);
-                } else {
-                    battleControls.appendChild(banzaiButton);
-                }
+                // Insert after Customize button
+                document.getElementById('customizeButton').insertAdjacentElement('afterend', banzaiButton);
             }
         }
 
+        function customizeArmies() {
+            // Get army names
+            const redArmyName = prompt('Enter a name for the Red Army:', 'Red Army');
+            const blueArmyName = prompt('Enter a name for the Blue Army:', 'Blue Army');
+            
+            // Update army titles if names were provided
+            if (redArmyName) {
+                document.querySelector('#redArmySetup h2').textContent = redArmyName;
+            }
+            if (blueArmyName) {
+                document.querySelector('#blueArmySetup h2').textContent = blueArmyName;
+            }
+            
+            // Ask about player names
+            const addPlayerNames = confirm('Would you like to add player names?');
+            if (addPlayerNames) {
+                const redPlayerName = prompt('Enter player name for ' + (redArmyName || 'Red Army') + ':', '');
+                const bluePlayerName = prompt('Enter player name for ' + (blueArmyName || 'Blue Army') + ':', '');
+                
+                // Add player names under army titles if provided
+                if (redPlayerName) {
+                    let redPlayerDiv = document.querySelector('#redArmySetup .player-name');
+                    if (!redPlayerDiv) {
+                        redPlayerDiv = document.createElement('div');
+                        redPlayerDiv.className = 'player-name';
+                        document.querySelector('#redArmySetup h2').insertAdjacentElement('afterend', redPlayerDiv);
+                    }
+                    redPlayerDiv.textContent = `Commander: ${redPlayerName}`;
+                }
+                
+                if (bluePlayerName) {
+                    let bluePlayerDiv = document.querySelector('#blueArmySetup .player-name');
+                    if (!bluePlayerDiv) {
+                        bluePlayerDiv = document.createElement('div');
+                        bluePlayerDiv.className = 'player-name';
+                        document.querySelector('#blueArmySetup h2').insertAdjacentElement('afterend', bluePlayerDiv);
+                    }
+                    bluePlayerDiv.textContent = `Commander: ${bluePlayerName}`;
+                }
+            }
+        }
+        
         function findAvailableRow(armyColor, unitType) {
             const grid = document.getElementById(`${armyColor}ArmyGrid`);
             const rows = grid.querySelectorAll('.army-row');
